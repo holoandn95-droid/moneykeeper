@@ -1,0 +1,2299 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lucy&#39;s MoneyKeeper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF1F0; --surface:#FFFFFF; --surface2:#F6F8F7; --line:#DCE3E1;
+  --ink:#16302B; --muted:#5E716C; --brand:#0F5C4D; --brand-ink:#FFFFFF;
+  --inc:#17895B; --exp:#C8453B; --sav:#B7791F; --inv:#3E56C4; --cash:#8FA39E;
+  --shadow:0 1px 0 rgba(22,48,43,.06);
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1716; --surface:#16211F; --surface2:#1C2927; --line:#2A3937;
+    --ink:#E6EFEC; --muted:#93A6A1; --brand:#3FB394; --brand-ink:#08211B;
+    --inc:#4CC48D; --exp:#EE7468; --sav:#E0A64A; --inv:#8697F0; --cash:#5D716C;
+    --shadow:none; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1716; --surface:#16211F; --surface2:#1C2927; --line:#2A3937;
+  --ink:#E6EFEC; --muted:#93A6A1; --brand:#3FB394; --brand-ink:#08211B;
+  --inc:#4CC48D; --exp:#EE7468; --sav:#E0A64A; --inv:#8697F0; --cash:#5D716C;
+  --shadow:none; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.num{font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.app{max-width:560px;margin:0 auto;padding:0 14px 120px}
+
+/* Header + period */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:12px 0 10px}
+.titlebar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+h1{font-size:19px;font-weight:800;margin:0;letter-spacing:-.01em}
+.sync{font-size:12px;color:var(--muted)}
+.seg{display:flex;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px;margin-top:10px}
+.seg button{flex:1;border:0;background:none;padding:7px 2px;border-radius:9px;font-size:13px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.period{display:flex;align-items:center;gap:8px;margin-top:8px}
+.period .lbl{flex:1;text-align:center;font-weight:700;font-size:15px}
+.iconbtn{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:18px;line-height:1;display:grid;place-items:center}
+.custom{display:none;gap:8px;margin-top:8px}
+.custom.on{display:flex}
+.custom label{flex:1;font-size:12px;color:var(--muted)}
+.custom input{width:100%;margin-top:2px}
+
+/* Generic */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px;box-shadow:var(--shadow)}
+h2{font-size:15px;font-weight:700;margin:0 0 10px}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+input[type=text],input[type=date],select,input[inputmode]{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 11px;width:100%;min-height:42px}
+.empty{padding:26px 10px;text-align:center;color:var(--muted)}
+.hidden{display:none!important}
+
+/* Hero */
+.hero{background:var(--brand);color:var(--brand-ink);border:0;padding:18px 16px 16px}
+.hero .k{font-size:13px;opacity:.85}
+.hero .big{font-size:34px;font-weight:800;letter-spacing:-.02em;margin:2px 0 4px;word-break:break-word}
+.hero .rate{font-size:13px;opacity:.9}
+.ribbon{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:14px 0 8px;background:rgba(255,255,255,.18)}
+.ribbon span{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;opacity:.95}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:0}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
+.stat .k{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.stat .k::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c)}
+.stat .v{font-size:18px;font-weight:700;margin-top:2px;word-break:break-word}
+.stat .d{font-size:12px;margin-top:2px;color:var(--muted)}
+.up{color:var(--exp)} .down{color:var(--inc)}
+
+/* Bars */
+.bar{margin:9px 0}
+.bar .top{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+.bar .track{height:8px;background:var(--surface2);border-radius:4px;margin-top:5px;overflow:hidden}
+.bar .fill{height:100%;border-radius:4px}
+
+/* Transactions */
+.dayhead{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);font-weight:600;padding:14px 4px 6px}
+.tx{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:6px}
+.tx .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:19px;background:var(--surface2);flex:none}
+.tx .mid{flex:1;min-width:0}
+.tx .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx .s{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx .amt{font-weight:700;white-space:nowrap}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;white-space:nowrap;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* Chart */
+.chartwrap{overflow-x:auto;margin:0 -4px}
+.chartwrap svg{display:block}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:7px 4px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:600;font-size:12px}
+tfoot td{font-weight:700;border-bottom:0}
+.tablewrap{overflow-x:auto}
+
+/* Nav + FAB */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav .in{max-width:560px;margin:0 auto;display:flex}
+nav button{flex:1;border:0;background:none;padding:9px 0 10px;font-size:11.5px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button .e{font-size:19px;line-height:1.1;filter:grayscale(1);opacity:.7}
+nav button[aria-current="page"]{color:var(--brand)}
+nav button[aria-current="page"] .e{filter:none;opacity:1}
+.fab{position:fixed;z-index:7;right:max(16px,calc(50% - 264px));bottom:calc(74px + env(safe-area-inset-bottom,0px));height:54px;padding:0 20px 0 16px;border-radius:27px;border:0;background:var(--brand);color:var(--brand-ink);font-weight:700;font-size:15px;box-shadow:0 6px 18px rgba(15,92,77,.35);display:flex;align-items:center;gap:6px}
+.fab b{font-size:24px;font-weight:500;line-height:1}
+
+/* Sheet */
+.scrim{position:fixed;inset:0;background:rgba(5,15,13,.45);z-index:20;display:none}
+.scrim.on{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;max-width:560px;margin:0 auto;background:var(--surface);border-radius:20px 20px 0 0;max-height:92%;overflow-y:auto;padding:8px 16px calc(16px + env(safe-area-inset-bottom,0px));transform:translateY(105%);transition:transform .22s ease}
+.sheet.on{transform:none}
+@media (prefers-reduced-motion:reduce){.sheet{transition:none}}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:4px auto 10px}
+.field{margin-top:12px}
+.field>span{display:block;font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:5px}
+.amount{font-size:28px!important;font-weight:800;text-align:right;min-height:56px!important}
+.quick{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.quick button{border:1px solid var(--line);background:var(--surface2);border-radius:8px;padding:5px 10px;font-size:13px;font-weight:600}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cat{border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:8px 2px 7px;font-size:11.5px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.2;text-align:center;min-height:62px}
+.cat .e{font-size:20px}
+.cat[aria-pressed="true"]{border-color:var(--tc);background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--tc)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{width:100%;border:0;border-radius:12px;padding:14px;font-weight:700;font-size:15px;background:var(--brand);color:var(--brand-ink);margin-top:16px}
+.btn.ghost{background:var(--surface2);color:var(--exp);border:1px solid var(--line);margin-top:8px}
+.err{color:var(--exp);font-size:13px;margin-top:8px;min-height:1em}
+.typeseg button[aria-pressed="true"]{color:var(--tc)}
+
+/* Settings */
+.list .item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
+.list .item:last-child{border-bottom:0}
+.list .item input{flex:1}
+.list .em{width:52px!important;text-align:center;flex:none!important}
+.del{border:1px solid var(--line);background:var(--surface2);border-radius:10px;width:42px;height:42px;flex:none;color:var(--exp);font-size:17px}
+.addrow{display:flex;gap:8px;margin-top:10px}
+.addrow .go{flex:none;border:0;background:var(--brand);color:var(--brand-ink);border-radius:10px;padding:0 16px;font-weight:700}
+.toast{position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:10px;font-size:13.5px;font-weight:600;z-index:30;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+.note{font-size:12.5px;color:var(--muted);margin-top:8px}
+input[type=password]{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 11px;width:100%;min-height:42px}
+.lockscr{position:fixed;inset:0;z-index:40;background:var(--bg);display:grid;place-items:center;padding:calc(24px + env(safe-area-inset-top,0px)) 20px calc(24px + env(safe-area-inset-bottom,0px))}
+.lockscr[hidden]{display:none}
+.lockbox{width:100%;max-width:360px;text-align:center}
+.lockic{width:72px;height:72px;border-radius:22px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-size:34px;margin:0 auto 14px}
+.lockbox h2{font-size:20px;margin:0 0 4px}
+.lockbox p{color:var(--muted);margin:0 0 16px}
+.lockbox input{text-align:center;font-size:18px;min-height:50px}
+.warn{background:color-mix(in srgb,var(--exp) 12%,transparent);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:10px}
+.okmsg{color:var(--inc)}
+.hbtns{display:flex;align-items:center;gap:8px}
+:root{--gold:#9A7300}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--gold:#D9B44A}}
+:root[data-theme="dark"]{--gold:#D9B44A}
+.savc{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:10px}
+.savc .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.savc .nm{font-weight:700}
+.savc .bk{font-size:12.5px;color:var(--muted)}
+.savc .row{padding:2px 0}
+.badge{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--surface2);white-space:nowrap}
+.badge.warn2{background:color-mix(in srgb,var(--sav) 24%,transparent)}
+.badge.done{background:color-mix(in srgb,var(--inc) 20%,transparent)}
+.savc .amt2{font-size:22px;font-weight:800;margin:6px 0 2px}
+.prog{height:6px;border-radius:3px;background:var(--surface2);margin:8px 0 6px;overflow:hidden}
+.prog span{display:block;height:100%;background:var(--sav)}
+.preview{background:var(--surface2);border-radius:12px;padding:10px 12px;margin-top:14px}
+.preview .row{padding:3px 0;font-size:14px}
+.check{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px}
+.check input{width:20px;height:20px;margin-top:1px;flex:none;accent-color:var(--brand)}
+select:disabled{opacity:.55}
+.linkbtn{border:0;background:none;color:var(--brand);font-weight:600;margin-top:12px;padding:6px;font-size:14px}
+.lockbox .stack input{margin-top:8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="titlebar">
+      <h1>Sổ tài chính gia đình</h1>
+      <div class="hbtns"><span class="sync" id="sync">Đang tải…</span><button class="iconbtn hidden" id="lockBtn" aria-label="Khóa sổ" title="Khóa sổ">🔒</button></div>
+    </div>
+    <div class="seg" id="modeSeg" role="group" aria-label="Chọn mốc thời gian">
+      <button data-m="day">Ngày</button><button data-m="week">Tuần</button><button data-m="month">Tháng</button><button data-m="year">Năm</button><button data-m="custom">Tùy chọn</button>
+    </div>
+    <div class="period" id="periodNav">
+      <button class="iconbtn" id="prev" aria-label="Kỳ trước">‹</button>
+      <div class="lbl num" id="plabel"></div>
+      <button class="iconbtn" id="next" aria-label="Kỳ sau">›</button>
+    </div>
+    <div class="custom" id="custom">
+      <label>Từ ngày<input type="date" id="cFrom"></label>
+      <label>Đến ngày<input type="date" id="cTo"></label>
+    </div>
+  </header>
+
+  <main>
+    <section id="v-overview"></section>
+    <section id="v-ledger" class="hidden"></section>
+    <section id="v-savings" class="hidden"></section>
+    <section id="v-report" class="hidden"></section>
+    <section id="v-settings" class="hidden"></section>
+  </main>
+</div>
+
+<button class="fab" id="fab"><b>+</b> Thêm</button>
+
+<nav><div class="in">
+  <button data-v="overview" aria-current="page"><span class="e">🏠</span>Tổng quan</button>
+  <button data-v="ledger"><span class="e">📒</span>Sổ thu chi</button>
+  <button data-v="savings"><span class="e">🏦</span>Tài sản</button>
+  <button data-v="report"><span class="e">📊</span>Báo cáo</button>
+  <button data-v="settings"><span class="e">⚙️</span>Cài đặt</button>
+</div></nav>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="grab"></div>
+  <div class="row"><h2 id="sheetTitle" style="margin:0">Thêm giao dịch</h2><button class="iconbtn" id="closeSheet" aria-label="Đóng">✕</button></div>
+  <div class="seg typeseg" id="fType" role="group" aria-label="Loại giao dịch">
+    <button data-t="expense" style="--tc:var(--exp)">Chi tiêu</button>
+    <button data-t="income" style="--tc:var(--inc)">Thu nhập</button>
+    <button data-t="saving" style="--tc:var(--sav)">Tiết kiệm</button>
+    <button data-t="invest" style="--tc:var(--inv)">Đầu tư</button>
+  </div>
+  <div class="seg hidden" id="fDir" role="group" aria-label="Chiều tiền" style="margin-top:8px"><button data-d="in">Gửi vào</button><button data-d="out">Rút ra</button></div>
+  <div class="field"><span>Số tiền (đồng)</span>
+    <input class="amount num" id="fAmount" inputmode="numeric" autocomplete="off" placeholder="0">
+    <div class="quick">
+      <button data-q="000">+000</button><button data-q="k50">+50.000</button><button data-q="k100">+100.000</button><button data-q="k500">+500.000</button><button data-q="clr">Xóa</button>
+    </div>
+  </div>
+  <div class="field"><span>Hạng mục</span><div class="cats" id="fCats"></div></div>
+  <div class="warn hidden" id="fGoldHint">Muốn lưu loại vàng (nhẫn, miếng), khối lượng và giá từng lần mua, hãy ghi ở mục Vàng. <button class="linkbtn" id="toGold" style="margin:0;padding:0 0 0 2px">Mở Tài sản → Vàng</button></div>
+  <div class="two">
+    <div class="field"><span>Ngày</span><input type="date" id="fDate"></div>
+    <div class="field" id="fMemberWrap"><span>Người chi/nhận</span><select id="fMember"></select></div>
+  </div>
+  <div class="field"><span>Ghi chú</span><input type="text" id="fNote" maxlength="140" placeholder="Ví dụ: đi chợ cuối tuần"></div>
+  <div class="err" id="fErr" role="alert"></div>
+  <button class="btn" id="fSave">Lưu giao dịch</button>
+  <button class="btn ghost hidden" id="fDel">Xóa giao dịch</button>
+</div>
+<div class="sheet" id="ssheet" role="dialog" aria-modal="true" aria-label="Sổ tiết kiệm"></div>
+<div class="toast" id="toast" role="status"></div>
+<div class="lockscr" id="lockscr" hidden>
+  <div class="lockbox">
+    <div class="lockic">🔒</div>
+    <h2>Sổ tài chính gia đình</h2>
+    <p id="lockMsg">Nhập mật khẩu để mở sổ.</p>
+    <div id="lockForm">
+      <input type="password" id="lockPw" autocomplete="current-password" placeholder="Mật khẩu" aria-label="Mật khẩu">
+      <button class="btn" id="lockGo">Mở khóa</button>
+      <div class="err" id="lockErr" role="alert"></div>
+      <button class="linkbtn hidden" id="toRecover">Quên mật khẩu? Dùng mã khôi phục</button>
+    </div>
+    <div id="recForm" class="hidden stack">
+      <input type="text" id="recCode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Mã khôi phục" aria-label="Mã khôi phục">
+      <input type="password" id="recPw" autocomplete="new-password" placeholder="Mật khẩu mới" aria-label="Mật khẩu mới">
+      <input type="password" id="recPw2" autocomplete="new-password" placeholder="Nhập lại mật khẩu mới" aria-label="Nhập lại mật khẩu mới">
+      <button class="btn" id="recGo">Khôi phục và mở sổ</button>
+      <div class="err" id="recErr" role="alert"></div>
+      <button class="linkbtn" id="backToPw">Quay lại nhập mật khẩu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+/* ---------- Constants ---------- */
+const TYPES = {
+  expense:{label:"Chi tiêu", color:"var(--exp)"},
+  income:{label:"Thu nhập", color:"var(--inc)"},
+  saving:{label:"Tiết kiệm", color:"var(--sav)"},
+  invest:{label:"Đầu tư", color:"var(--inv)"}
+};
+const TYPE_KEYS = ["expense","income","saving","invest"];
+const DEFAULT_CATS = {
+  expense:[["an","🍜","Ăn uống"],["cho","🛒","Đi chợ"],["nha","🏠","Nhà ở"],["dien","💡","Điện nước, mạng"],["dilai","⛽","Đi lại, xăng xe"],["con","🎒","Con cái, học phí"],["yte","💊","Y tế"],["muasam","👕","Mua sắm"],["hieuhi","🎁","Hiếu hỉ"],["giaitri","🎬","Giải trí, du lịch"],["baohiem","🛡️","Bảo hiểm"],["no","💳","Trả nợ"],["chikhac","📦","Chi khác"]],
+  income:[["luong","💼","Lương"],["thuong","🎉","Thưởng"],["kinhdoanh","🏪","Kinh doanh"],["laidt","📈","Lãi, cổ tức"],["chothue","🔑","Cho thuê"],["thukhac","💰","Thu khác"]],
+  saving:[["guinh","🏦","Gửi ngân hàng"],["khancap","🆘","Quỹ khẩn cấp"],["hoctap","🎓","Quỹ học tập"],["tkkhac","🐷","Tiết kiệm khác"]],
+  invest:[["ck","📊","Chứng khoán"],["vang","🥇","Vàng"],["bds","🏘️","Bất động sản"],["quy","🧺","Chứng chỉ quỹ"],["dtkhac","🌱","Đầu tư khác"]]
+};
+function defaultConfig(){
+  const categories = {};
+  for (const t of TYPE_KEYS) categories[t] = DEFAULT_CATS[t].map(([id,icon,name]) => ({id,icon,name}));
+  return {categories, members:[], goldPrices:{}};
+}
+
+/* ---------- Utils ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const NF = new Intl.NumberFormat("vi-VN");
+const money = v => NF.format(v) + " ₫";
+const signed = v => (v > 0 ? "+" : v < 0 ? "−" : "") + NF.format(Math.abs(v)) + " ₫";
+function short(v){
+  const a = Math.abs(v), t = x => NF.format(Math.round(x*10)/10);
+  if (a >= 1e9) return t(v/1e9) + " tỷ";
+  if (a >= 1e6) return t(v/1e6) + " tr";
+  if (a >= 1e3) return t(v/1e3) + "k";
+  return NF.format(v);
+}
+const pad = n => String(n).padStart(2,"0");
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+const addDays = (d,n) => new Date(d.getFullYear(), d.getMonth(), d.getDate()+n);
+const startOfWeek = d => addDays(d, -((d.getDay()+6)%7));
+const WD = ["Chủ nhật","Thứ hai","Thứ ba","Thứ tư","Thứ năm","Thứ sáu","Thứ bảy"];
+const dmy = d => `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+const dm = d => `${pad(d.getDate())}/${pad(d.getMonth()+1)}`;
+const isYmd = s => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("on"), 1800); }
+
+/* ---------- State ---------- */
+const S = {
+  view:"overview", mode:"month", anchor:new Date(),
+  cFrom:null, cTo:null,
+  txs:[], savs:[], golds:[], reals:[], assetTab:"savings", goldFilter:"all", config:defaultConfig(),
+  store:"pending", lock:null, lockKnown:false, key:null, dekRaw:null, removing:false, localEnc:"", pwMsg:null, fails:0, blockUntil:0, ledgerType:"all", ledgerCat:"", ledgerQ:"", reportType:"expense", settingsType:"expense"
+};
+{ const t = new Date(); S.cFrom = ymd(new Date(t.getFullYear(), t.getMonth(), 1)); S.cTo = ymd(t); }
+
+function catOf(type, id){
+  const c = (S.config.categories[type] || []).find(c => c.id === id);
+  return c || {id, icon:"❔", name:"Hạng mục đã xóa"};
+}
+
+/* ---------- Periods ---------- */
+function rangeFor(mode, anchor){
+  const a = anchor, today = ymd(new Date());
+  if (mode === "day"){ const s = ymd(a); return {from:s, to:s, label:(s===today?"Hôm nay, ":WD[a.getDay()]+", ")+dmy(a)}; }
+  if (mode === "week"){ const s = startOfWeek(a), e = addDays(s,6); return {from:ymd(s), to:ymd(e), label:`${dm(s)} – ${dmy(e)}`}; }
+  if (mode === "month"){ const s = new Date(a.getFullYear(), a.getMonth(), 1), e = new Date(a.getFullYear(), a.getMonth()+1, 0); return {from:ymd(s), to:ymd(e), label:`Tháng ${a.getMonth()+1}/${a.getFullYear()}`}; }
+  if (mode === "year"){ return {from:`${a.getFullYear()}-01-01`, to:`${a.getFullYear()}-12-31`, label:`Năm ${a.getFullYear()}`}; }
+  let f = S.cFrom, t = S.cTo; if (f > t) [f,t] = [t,f];
+  return {from:f, to:t, label:`${dmy(parse(f))} – ${dmy(parse(t))}`};
+}
+const curRange = () => rangeFor(S.mode, S.anchor);
+function shiftAnchor(mode, a, dir){
+  if (mode === "day") return addDays(a, dir);
+  if (mode === "week") return addDays(a, 7*dir);
+  if (mode === "month") return new Date(a.getFullYear(), a.getMonth()+dir, 1);
+  if (mode === "year") return new Date(a.getFullYear()+dir, 0, 1);
+  return a;
+}
+function prevRange(){
+  if (S.mode !== "custom") return rangeFor(S.mode, shiftAnchor(S.mode, S.anchor, -1));
+  const r = curRange(), n = daysBetween(r.from, r.to);
+  const e = addDays(parse(r.from), -1), s = addDays(e, -(n-1));
+  return {from:ymd(s), to:ymd(e)};
+}
+const daysBetween = (f,t) => Math.round((parse(t) - parse(f)) / 864e5) + 1;
+
+/* ---------- Calculations (integers only) ---------- */
+function inRange(r){ return S.txs.filter(t => t.date >= r.from && t.date <= r.to); }
+function totals(list){
+  const s = {income:0, expense:0, saving:0, invest:0};
+  for (const t of list) s[t.type] += t.wd ? -t.amount : t.amount;
+  return s;
+}
+function buckets(r){
+  const s = parse(r.from), e = parse(r.to), n = daysBetween(r.from, r.to), out = [];
+  let unit = S.mode === "year" ? "month" : n <= 1 ? "none" : n <= 31 ? "day" : n <= 120 ? "week" : "month";
+  if (unit === "day") for (let d = s; d <= e; d = addDays(d,1)) out.push({from:ymd(d), to:ymd(d), label:dm(d), tick:String(d.getDate())});
+  if (unit === "week") for (let d = startOfWeek(s); d <= e; d = addDays(d,7)){
+    const a = d < s ? s : d, b = addDays(d,6) > e ? e : addDays(d,6);
+    out.push({from:ymd(a), to:ymd(b), label:`${dm(a)}–${dm(b)}`, tick:dm(a)});
+  }
+  if (unit === "month") for (let d = new Date(s.getFullYear(), s.getMonth(), 1); d <= e; d = new Date(d.getFullYear(), d.getMonth()+1, 1)){
+    const last = new Date(d.getFullYear(), d.getMonth()+1, 0);
+    const a = d < s ? s : d, b = last > e ? e : last;
+    out.push({from:ymd(a), to:ymd(b), label:`Tháng ${d.getMonth()+1}/${d.getFullYear()}`, tick:"T"+(d.getMonth()+1)});
+  }
+  for (const b of out) b.sum = totals(S.txs.filter(t => t.date >= b.from && t.date <= b.to));
+  return {unit, list:out};
+}
+function pctChange(cur, prev){
+  if (!prev) return null;
+  return Math.round((cur - prev) / prev * 1000) / 10;
+}
+
+/* ---------- Crypto (AES-GCM 256, PBKDF2-SHA256) ---------- */
+const CRYPTO_OK = !!(window.crypto && crypto.subtle && window.isSecureContext !== false);
+const ITER = 310000;
+const te = new TextEncoder(), td = new TextDecoder();
+const b64 = u8 => { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function deriveKek(pw, salt, iter){
+  const base = await crypto.subtle.importKey("raw", te.encode(pw), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2", salt, iterations:iter, hash:"SHA-256"}, base, {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]);
+}
+const importDek = raw => crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt","decrypt"]);
+async function encObj(key, obj){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM", iv}, key, te.encode(JSON.stringify(obj))));
+  const out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12); return b64(out);
+}
+async function decObj(key, s){
+  const u = unb64(s);
+  return JSON.parse(td.decode(await crypto.subtle.decrypt({name:"AES-GCM", iv:u.subarray(0,12)}, key, u.subarray(12))));
+}
+function cleanLock(d){
+  if (!d || typeof d.salt !== "string" || typeof d.wrapped !== "string") return null;
+  const iter = Number(d.iter);
+  if (!Number.isInteger(iter) || iter < 100000 || iter > 5000000) return null;
+  const L = {v:1, salt:d.salt, wrapped:d.wrapped, iter};
+  const ri = Number(d.riter);
+  if (typeof d.rsalt === "string" && typeof d.rwrapped === "string" && Number.isInteger(ri) && ri >= 100000 && ri <= 5000000){ L.rsalt = d.rsalt; L.rwrapped = d.rwrapped; L.riter = ri; }
+  return L;
+}
+/* Recovery code: a second key-wrap of the same data key */
+const RITER = 600000;
+const normCode = c => String(c||"").toUpperCase().replace(/[\s-]/g, "");
+async function recoveryFields(code, raw){
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const kek = await deriveKek(normCode(code), salt, RITER);
+  return {rsalt:b64(salt), riter:RITER, rwrapped: await encObj(kek, {k:b64(raw)})};
+}
+async function openRecovery(lock, code){
+  if (!lock || !lock.rwrapped) return null;
+  const kek = await deriveKek(normCode(code), unb64(lock.rsalt), lock.riter);
+  try { return unb64((await decObj(kek, lock.rwrapped)).k); } catch(e){ return null; }
+}
+const keepRecovery = (from, to) => { if (from && from.rwrapped){ to.rsalt = from.rsalt; to.rwrapped = from.rwrapped; to.riter = from.riter; } return to; };
+function genCode(){
+  const A = "ABCDEFGHJKMNPQRSTUVWXYZ23456789", r = crypto.getRandomValues(new Uint32Array(20)); let s = "";
+  for (let i = 0; i < 20; i++){ if (i && i % 4 === 0) s += "-"; s += A[r[i] % A.length]; }
+  return s;
+}
+async function writeLock(lock){
+  if (S.store === "db"){
+    try { await withRetry(() => db.doc("config/lock").set(lock)); }
+    catch(e){ throw new Error(e && e.code === "invalid_argument" ? "Chỉ chủ sở hữu hoặc Editor của trang mới thay đổi được." : "Chưa lưu được. Kiểm tra kết nối rồi thử lại."); }
+  }
+  S.lock = lock;
+  if (S.store === "local") await saveLocal();
+}
+async function makeLock(pw, raw){
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const kek = await deriveKek(pw, salt, ITER);
+  return {v:1, salt:b64(salt), iter:ITER, wrapped: await encObj(kek, {k:b64(raw)})};
+}
+async function openLock(lock, pw){
+  const kek = await deriveKek(pw, unb64(lock.salt), lock.iter);
+  try { return unb64((await decObj(kek, lock.wrapped)).k); } catch(e){ return null; }
+}
+
+/* ---------- Storage layer ---------- */
+const LS_KEY = "so-tai-chinh-gia-dinh-v1";
+let db = null, cfgQueue = Promise.resolve(), localQueue = Promise.resolve(), loadTimer = null;
+const rawDocs = new Map(), decCache = new Map();
+let rawConfig = null, procSeq = 0, migrating = false;
+
+function cleanTx(id, d){
+  if (!d || !TYPES[d.type] || !Number.isSafeInteger(d.amount) || d.amount <= 0 || !isYmd(d.date)) return null;
+  return {id, type:d.type, amount:d.amount, cat:String(d.cat||""), date:d.date,
+          note:String(d.note||"").slice(0,140), member:String(d.member||"").slice(0,40), createdAt:Number(d.createdAt)||0,
+          wd: !!d.wd && (d.type === "saving" || d.type === "invest"), sav:String(d.sav||"").slice(0,40)};
+}
+function cleanConfig(c){
+  const base = defaultConfig();
+  if (!c || typeof c !== "object") return base;
+  const out = {categories:{}, members:[], goldPrices:{}};
+  if (c.goldPrices && typeof c.goldPrices === "object") for (const k of GT_KEYS){
+    const p = c.goldPrices[k];
+    if (p && Number.isSafeInteger(p.price) && p.price > 0 && p.price <= 1e12 && (p.pUnit === "chi" || p.pUnit === "luong") && isYmd(p.date)) out.goldPrices[k] = {price:p.price, pUnit:p.pUnit, date:p.date};
+  }
+  for (const t of TYPE_KEYS){
+    const arr = c.categories && Array.isArray(c.categories[t]) ? c.categories[t] : null;
+    out.categories[t] = arr ? arr.filter(x => x && x.id && x.name).map(x => ({id:String(x.id), icon:String(x.icon||"•").slice(0,4), name:String(x.name).slice(0,40)})) : base.categories[t];
+  }
+  out.members = Array.isArray(c.members) ? c.members.map(m => String(m).slice(0,40)).filter(Boolean) : [];
+  return out;
+}
+const isLocked = () => !!S.lock && !S.key;
+const encrypting = () => !!S.lock && !!S.key && !S.removing;
+function setSync(text){ $("#sync").textContent = text; }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function withRetry(fn){
+  for (let i = 0; ; i++){
+    try { return await fn(); }
+    catch(e){ if (i < 3 && e && (e.code === "resource_exhausted" || e.code === "unavailable")) { await sleep(800 * (i+1) + Math.random()*400); continue; } throw e; }
+  }
+}
+
+/* Local (device) mode */
+function saveLocal(){
+  localQueue = localQueue.then(async () => {
+    try {
+      let payload;
+      if (S.lock){
+        if (!S.key) return;
+        payload = {v:2, lock:S.lock, data: await encObj(S.key, {txs:S.txs, config:S.config, savs:S.savs, golds:S.golds, reals:S.reals})};
+        S.localEnc = payload.data;
+      } else payload = {txs:S.txs, config:S.config, savs:S.savs, golds:S.golds, reals:S.reals};
+      localStorage.setItem(LS_KEY, JSON.stringify(payload));
+    } catch(e){ toast("Không lưu được trên thiết bị này"); }
+  });
+  return localQueue;
+}
+function applyLocal(d){
+  S.txs = (d.txs||[]).map(t => cleanTx(t.id, t)).filter(Boolean);
+  S.savs = (d.savs||[]).map(x => cleanSav(x.id, x)).filter(Boolean);
+  S.golds = (d.golds||[]).map(x => cleanGold(x.id, x)).filter(Boolean);
+  S.reals = (d.reals||[]).map(x => cleanReal(x.id, x)).filter(Boolean);
+  S.config = cleanConfig(d.config);
+}
+function loadLocal(){
+  S.store = "local";
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw){
+      const d = JSON.parse(raw);
+      if (d.lock){ S.lock = cleanLock(d.lock); S.localEnc = String(d.data||""); }
+      else { applyLocal(d); }
+    }
+  } catch(e){}
+  S.lockKnown = true;
+  setSync("Lưu trên máy này");
+  render();
+}
+
+/* Shared (db) mode: decrypt documents as they arrive */
+const rawSav = new Map(), decSavCache = new Map(), rawGold = new Map(), decGoldCache = new Map(), rawReal = new Map(), decRealCache = new Map();
+async function decodeColl(raw, cache, clean, seq){
+  const out = []; let plain = 0;
+  for (const [id, d] of raw){
+    if (d.enc){
+      if (!S.key) continue;
+      let c = cache.get(id);
+      if (!c || c.enc !== d.enc){
+        try { c = {enc:d.enc, v:clean(id, await decObj(S.key, String(d.enc)))}; } catch(e){ c = {enc:d.enc, v:null}; }
+        if (seq !== procSeq) return null;
+        cache.set(id, c);
+      }
+      if (c.v) out.push(c.v);
+    } else { const v = clean(id, d); if (v){ out.push(v); if (encrypting()) plain++; } }
+  }
+  return {out, plain};
+}
+async function processTx(){
+  if (S.store !== "db") return;
+  const seq = ++procSeq;
+  let a = {out:[], plain:0}, b = {out:[], plain:0}, c = {out:[], plain:0}, r = {out:[], plain:0};
+  if (!isLocked()){
+    a = await decodeColl(rawDocs, decCache, cleanTx, seq); if (!a) return;
+    b = await decodeColl(rawSav, decSavCache, cleanSav, seq); if (!b) return;
+    c = await decodeColl(rawGold, decGoldCache, cleanGold, seq); if (!c) return;
+    r = await decodeColl(rawReal, decRealCache, cleanReal, seq); if (!r) return;
+  }
+  if (seq !== procSeq) return;
+  S.txs = a.out; S.savs = b.out; S.golds = c.out; S.reals = r.out; render();
+  if ((a.plain || b.plain || c.plain || r.plain) && !migrating) encryptAll();
+}
+async function processConfig(){
+  if (S.store !== "db") return;
+  if (isLocked()){ S.config = defaultConfig(); return; }
+  const d = rawConfig;
+  if (!d) S.config = defaultConfig();
+  else if (d.enc){
+    if (!S.key) return;
+    try { S.config = cleanConfig(await decObj(S.key, String(d.enc))); } catch(e){ return; }
+  } else {
+    S.config = cleanConfig(d);
+    if (encrypting() && !migrating) saveConfig();
+  }
+  render();
+}
+async function initStore(){
+  if (!(window.claude && typeof window.claude.use === "function")) { loadLocal(); return; }
+  try { db = await window.claude.use("db"); } catch(e){ db = null; }
+  if (!db){ loadLocal(); return; }
+  S.store = "db";
+  setSync("Đang đồng bộ…");
+  loadTimer = setTimeout(() => { setSync("Chưa kết nối được"); if (!S.lockKnown) render(); }, 10000);
+  db.doc("config/lock").onSnapshot(snap => {
+    const L = snap.exists ? cleanLock(snap.data()) : null;
+    const wasLocked = !!S.lock;
+    S.lock = L; S.lockKnown = true;
+    if (!L && S.key && !S.removing){ S.key = null; S.dekRaw = null; }
+    if (L && !wasLocked && !S.key){ S.txs = []; S.savs = []; S.golds = []; S.reals = []; S.config = defaultConfig(); }
+    render(); processTx(); processConfig();
+  }, () => { S.lockKnown = true; render(); });
+  db.collection("tx").onSnapshot(snap => {
+    rawDocs.clear();
+    for (const d of snap.docs) rawDocs.set(d.id, d.data() || {});
+    for (const id of [...decCache.keys()]) if (!rawDocs.has(id)) decCache.delete(id);
+    if (!snap.metadata.fromCache){ clearTimeout(loadTimer); setSync("Đã đồng bộ"); }
+    processTx();
+  }, err => { clearTimeout(loadTimer); setSync(err.code === "revoked" ? "Chỉ xem" : "Lỗi đồng bộ"); });
+  db.collection("real").onSnapshot(snap => {
+    rawReal.clear();
+    for (const d of snap.docs) rawReal.set(d.id, d.data() || {});
+    for (const id of [...decRealCache.keys()]) if (!rawReal.has(id)) decRealCache.delete(id);
+    processTx();
+  }, () => {});
+  db.collection("gold").onSnapshot(snap => {
+    rawGold.clear();
+    for (const d of snap.docs) rawGold.set(d.id, d.data() || {});
+    for (const id of [...decGoldCache.keys()]) if (!rawGold.has(id)) decGoldCache.delete(id);
+    processTx();
+  }, () => {});
+  db.collection("sav").onSnapshot(snap => {
+    rawSav.clear();
+    for (const d of snap.docs) rawSav.set(d.id, d.data() || {});
+    for (const id of [...decSavCache.keys()]) if (!rawSav.has(id)) decSavCache.delete(id);
+    processTx();
+  }, () => {});
+  db.doc("config/main").onSnapshot(snap => {
+    rawConfig = snap.exists ? (snap.data() || null) : null;
+    processConfig();
+  }, () => {});
+}
+async function txBody(tx){
+  const {id, ...body} = tx;
+  return encrypting() ? {enc: await encObj(S.key, body)} : body;
+}
+async function writeTx(tx){
+  if (S.store === "db"){
+    const body = await txBody(tx);
+    await withRetry(() => db.collection("tx").doc(tx.id).set(body));
+  } else {
+    const i = S.txs.findIndex(t => t.id === tx.id);
+    if (i >= 0) S.txs[i] = tx; else S.txs.push(tx);
+    render(); await saveLocal();
+  }
+}
+async function removeTx(id){
+  if (S.store === "db") await withRetry(() => db.collection("tx").doc(id).delete());
+  else { S.txs = S.txs.filter(t => t.id !== id); render(); await saveLocal(); }
+}
+async function writeSav(sv){
+  if (S.store === "db"){
+    const body = await txBody(sv);
+    await withRetry(() => db.collection("sav").doc(sv.id).set(body));
+  } else {
+    const i = S.savs.findIndex(x => x.id === sv.id);
+    if (i >= 0) S.savs[i] = sv; else S.savs.push(sv);
+    render(); await saveLocal();
+  }
+}
+async function writeGold(g){
+  if (S.store === "db"){
+    const body = await txBody(g);
+    await withRetry(() => db.collection("gold").doc(g.id).set(body));
+  } else {
+    const i = S.golds.findIndex(x => x.id === g.id);
+    if (i >= 0) S.golds[i] = g; else S.golds.push(g);
+    render(); await saveLocal();
+  }
+}
+async function writeReal(o){
+  if (S.store === "db"){
+    const body = await txBody(o);
+    await withRetry(() => db.collection("real").doc(o.id).set(body));
+  } else {
+    const i = S.reals.findIndex(x => x.id === o.id);
+    if (i >= 0) S.reals[i] = o; else S.reals.push(o);
+    render(); await saveLocal();
+  }
+}
+async function removeReal(id){
+  if (S.store === "db") await withRetry(() => db.collection("real").doc(id).delete());
+  else { S.reals = S.reals.filter(x => x.id !== id); render(); await saveLocal(); }
+}
+async function removeGold(id){
+  if (S.store === "db") await withRetry(() => db.collection("gold").doc(id).delete());
+  else { S.golds = S.golds.filter(x => x.id !== id); render(); await saveLocal(); }
+}
+async function removeSav(id){
+  if (S.store === "db") await withRetry(() => db.collection("sav").doc(id).delete());
+  else { S.savs = S.savs.filter(x => x.id !== id); render(); await saveLocal(); }
+}
+function saveConfig(){
+  const snapshot = JSON.parse(JSON.stringify(S.config));
+  render();
+  if (S.store === "db"){
+    cfgQueue = cfgQueue.then(async () => {
+      const body = encrypting() ? {enc: await encObj(S.key, snapshot)} : snapshot;
+      await withRetry(() => db.doc("config/main").set(body));
+    }).catch(e => toast(e && e.code === "invalid_argument" ? "Bạn không có quyền sửa" : "Chưa lưu được cài đặt"));
+    return cfgQueue;
+  }
+  return saveLocal();
+}
+
+/* ---------- Password actions ---------- */
+function pwMsg(text, ok){ S.pwMsg = {text, ok:!!ok}; render(); }
+async function rewriteAll(label){
+  migrating = true;
+  try {
+    const list = S.txs.slice();
+    for (let i = 0; i < list.length; i++){
+      if (i % 20 === 0) pwMsg(`${label} ${i}/${list.length} giao dịch…`, true);
+      const body = await txBody(list[i]);
+      await withRetry(() => db.collection("tx").doc(list[i].id).set(body));
+    }
+    for (const re of S.reals.slice()){ const body = await txBody(re); await withRetry(() => db.collection("real").doc(re.id).set(body)); }
+    for (const gd of S.golds.slice()){ const body = await txBody(gd); await withRetry(() => db.collection("gold").doc(gd.id).set(body)); }
+    for (const sv of S.savs.slice()){ const body = await txBody(sv); await withRetry(() => db.collection("sav").doc(sv.id).set(body)); }
+    await saveConfig();
+  } finally { migrating = false; }
+}
+async function encryptAll(){
+  if (S.store !== "db" || !encrypting()) return;
+  try { await rewriteAll("Đang mã hóa"); pwMsg("", true); } catch(e){ pwMsg("Chưa mã hóa xong. Mở lại trang để tiếp tục."); }
+}
+async function setPassword(pw, code){
+  const raw = crypto.getRandomValues(new Uint8Array(32));
+  const lock = await makeLock(pw, raw);
+  if (code) Object.assign(lock, await recoveryFields(code, raw));
+  const key = await importDek(raw);
+  if (S.store === "db"){
+    S.lock = lock; S.key = key; S.dekRaw = raw;
+    try { await withRetry(() => db.doc("config/lock").set(lock)); }
+    catch(e){
+      S.lock = null; S.key = null; S.dekRaw = null; render();
+      throw new Error(e && e.code === "invalid_argument" ? "Chỉ chủ sở hữu hoặc Editor của trang mới đặt được mật khẩu." : "Chưa lưu được. Kiểm tra kết nối rồi thử lại.");
+    }
+    await rewriteAll("Đang mã hóa");
+  } else {
+    S.lock = lock; S.key = key; S.dekRaw = raw;
+    await saveLocal();
+  }
+}
+async function changePassword(cur, pw){
+  const raw = await openLock(S.lock, cur);
+  if (!raw) throw new Error("Mật khẩu hiện tại không đúng.");
+  await writeLock(keepRecovery(S.lock, await makeLock(pw, raw)));
+}
+async function setRecovery(code){
+  if (!S.dekRaw) throw new Error("Hãy mở khóa sổ trước.");
+  const L = S.lock;
+  await writeLock(Object.assign({v:1, salt:L.salt, wrapped:L.wrapped, iter:L.iter}, await recoveryFields(code, S.dekRaw)));
+}
+async function clearRecovery(){
+  const L = S.lock;
+  await writeLock({v:1, salt:L.salt, wrapped:L.wrapped, iter:L.iter});
+}
+async function recoverWithCode(code, pw){
+  const raw = await openRecovery(S.lock, code);
+  if (!raw) return false;
+  const key = await importDek(raw);
+  if (S.store === "local"){
+    try { const d = await decObj(key, S.localEnc); applyLocal(d); }
+    catch(e){ return false; }
+  }
+  S.key = key; S.dekRaw = raw; S.recMode = false;
+  let saved = true;
+  try { await writeLock(keepRecovery(S.lock, await makeLock(pw, raw))); } catch(e){ saved = false; }
+  render(); processTx(); processConfig();
+  return saved ? "saved" : "unsaved";
+}
+async function removePassword(cur){
+  const raw = await openLock(S.lock, cur);
+  if (!raw) throw new Error("Mật khẩu hiện tại không đúng.");
+  if (S.store === "db"){
+    S.removing = true;
+    try {
+      await rewriteAll("Đang giải mã");
+      await withRetry(() => db.doc("config/lock").delete());
+    } catch(e){ S.removing = false; throw new Error(e && e.code === "invalid_argument" ? "Chỉ chủ sở hữu hoặc Editor của trang mới gỡ được mật khẩu." : "Chưa gỡ xong. Thử lại."); }
+    S.lock = null; S.key = null; S.dekRaw = null; S.removing = false;
+  } else {
+    S.lock = null; S.key = null; S.dekRaw = null; S.localEnc = "";
+    await saveLocal();
+  }
+}
+async function unlock(pw){
+  const raw = await openLock(S.lock, pw);
+  if (!raw) return false;
+  const key = await importDek(raw);
+  if (S.store === "local"){
+    try { const d = await decObj(key, S.localEnc); applyLocal(d); }
+    catch(e){ return false; }
+  }
+  S.key = key; S.dekRaw = raw;
+  render(); processTx(); processConfig();
+  return true;
+}
+function lockNow(){
+  if (!S.lock) return;
+  S.key = null; S.dekRaw = null; decCache.clear(); procSeq++;
+  S.txs = []; S.savs = []; decSavCache.clear(); S.golds = []; decGoldCache.clear(); S.reals = []; decRealCache.clear(); S.config = defaultConfig(); S.pwMsg = null; S.recMode = false;
+  closeSheet(); render();
+}
+
+/* ---------- Render helpers ---------- */
+function txRow(t){
+  const c = catOf(t.type, t.cat);
+  const sign = t.type === "income" || t.wd ? "+" : "−";
+  const sub = [t.wd ? "Rút " + TYPES[t.type].label.toLowerCase() : TYPES[t.type].label, t.member, t.note].filter(Boolean).map(esc).join(", ");
+  return `<button class="tx" data-id="${esc(t.id)}">
+    <span class="ic">${esc(c.icon)}</span>
+    <span class="mid"><span class="t" style="display:block">${esc(c.name)}</span><span class="s" style="display:block">${sub}</span></span>
+    <span class="amt num" style="color:${TYPES[t.type].color}">${sign}${NF.format(t.amount)}</span></button>`;
+}
+const sortTx = list => list.slice().sort((a,b) => a.date < b.date ? 1 : a.date > b.date ? -1 : (b.createdAt - a.createdAt));
+function barList(entries, total, color){
+  entries = entries.filter(e => e.v > 0);
+  if (!entries.length) return `<div class="empty small">Chưa có dữ liệu trong kỳ này.</div>`;
+  return entries.map(e => {
+    const p = total > 0 ? Math.round(e.v / total * 1000) / 10 : 0;
+    return `<div class="bar"><div class="top"><span>${esc(e.icon||"")} ${esc(e.name)}</span><span class="num"><b>${NF.format(e.v)}</b> <span class="muted small">${NF.format(p)}%</span></span></div>
+      <div class="track"><div class="fill" style="width:${Math.max(p,0.5)}%;background:${color}"></div></div></div>`;
+  }).join("");
+}
+function byCategory(list, type){
+  const m = new Map();
+  for (const t of list) if (t.type === type) m.set(t.cat, (m.get(t.cat)||0) + (t.wd ? -t.amount : t.amount));
+  return [...m].map(([id,v]) => { const c = catOf(type,id); return {name:c.name, icon:c.icon, v}; }).sort((a,b) => b.v - a.v);
+}
+
+/* ---------- Views ---------- */
+function renderOverview(){
+  const r = curRange(), list = inRange(r), s = totals(list), p = totals(inRange(prevRange()));
+  const net = s.income - s.expense;
+  const cash = s.income - s.expense - s.saving - s.invest;
+  const rate = s.income ? Math.round(net / s.income * 1000) / 10 : null;
+  const outflow = s.expense + s.saving + s.invest;
+  const base = Math.max(s.income, outflow) || 1;
+  const seg = (v,c) => v > 0 ? `<span style="width:${v/base*100}%;background:${c}"></span>` : "";
+  const all = totals(S.txs);
+  const ch = (cur, prev, goodWhenDown) => {
+    const c = pctChange(cur, prev); if (c === null) return `<div class="d">Kỳ trước: ${short(prev)}</div>`;
+    const cls = c === 0 ? "" : (c > 0) === goodWhenDown ? "up" : "down";
+    return `<div class="d"><span class="${cls}">${c > 0 ? "▲" : c < 0 ? "▼" : "="} ${NF.format(Math.abs(c))}%</span> so với kỳ trước</div>`;
+  };
+  $("#v-overview").innerHTML = backupReminder() + `
+    <div class="card hero">
+      <div class="k">Tích lũy trong kỳ (thu − chi)</div>
+      <div class="big num">${signed(net)}</div>
+      <div class="rate">${rate === null ? "Chưa có thu nhập trong kỳ" : `Tỷ lệ tích lũy ${NF.format(rate)}% thu nhập`}</div>
+      <div class="ribbon" aria-hidden="true">
+        ${seg(s.expense,"var(--exp)")}${seg(s.saving,"var(--sav)")}${seg(s.invest,"var(--inv)")}${seg(Math.max(cash,0),"rgba(255,255,255,.55)")}
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--exp)"></i>Chi ${short(s.expense)}</span>
+        <span><i style="background:var(--sav)"></i>Tiết kiệm ${short(s.saving)}</span>
+        <span><i style="background:var(--inv)"></i>Đầu tư ${short(s.invest)}</span>
+        <span><i style="background:rgba(255,255,255,.55)"></i>${cash >= 0 ? "Tiền mặt còn " + short(cash) : "Vượt thu nhập " + short(-cash)}</span>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat" style="--c:var(--inc)"><div class="k">Thu nhập</div><div class="v num">${money(s.income)}</div>${ch(s.income,p.income,false)}</div>
+      <div class="stat" style="--c:var(--exp)"><div class="k">Chi tiêu</div><div class="v num">${money(s.expense)}</div>${ch(s.expense,p.expense,true)}</div>
+      <div class="stat" style="--c:var(--sav)"><div class="k">Tiết kiệm</div><div class="v num">${money(s.saving)}</div>${ch(s.saving,p.saving,false)}</div>
+      <div class="stat" style="--c:var(--inv)"><div class="k">Đầu tư</div><div class="v num">${money(s.invest)}</div>${ch(s.invest,p.invest,false)}</div>
+    </div>
+    <div class="card">
+      <h2>Chi tiêu lớn nhất trong kỳ</h2>
+      ${barList(byCategory(list,"expense").slice(0,5), s.expense, "var(--exp)")}
+    </div>
+    <div class="card">
+      <h2>Lũy kế từ trước đến nay</h2>
+      <div class="row" style="padding:4px 0"><span>Tổng thu − tổng chi</span><b class="num">${signed(all.income - all.expense)}</b></div>
+      <div class="row" style="padding:4px 0"><span>Tiết kiệm (gửi − rút)</span><b class="num">${money(all.saving)}</b></div>
+      <div class="row" style="padding:4px 0"><span>Đầu tư (mua − bán)</span><b class="num">${money(all.invest)}</b></div>
+      <div class="row" style="padding:4px 0"><span>Tiền mặt còn lại</span><b class="num">${signed(all.income - all.expense - all.saving - all.invest)}</b></div>
+      <div class="note">Tiền mặt còn lại = thu − chi − tiết kiệm − đầu tư. Số âm nghĩa là đã dùng nhiều hơn số thu ghi trong sổ.</div>
+    </div>
+    <div class="card">
+      <div class="row"><h2 style="margin:0">Giao dịch gần đây</h2><button class="chip" data-goto="ledger">Xem tất cả</button></div>
+      <div style="margin-top:10px">${list.length ? sortTx(list).slice(0,5).map(txRow).join("") : `<div class="empty">Kỳ này chưa có giao dịch. Bấm <b>+ Thêm</b> để ghi khoản đầu tiên.</div>`}</div>
+    </div>`;
+}
+
+function renderLedger(){
+  const r = curRange();
+  let list = inRange(r);
+  if (S.ledgerType !== "all") list = list.filter(t => t.type === S.ledgerType);
+  if (S.ledgerType !== "all" && S.ledgerCat) list = list.filter(t => t.cat === S.ledgerCat);
+  const q = S.ledgerQ.trim().toLowerCase();
+  if (q) list = list.filter(t => (t.note + " " + t.member + " " + catOf(t.type,t.cat).name).toLowerCase().includes(q));
+  const s = totals(list);
+  const groups = new Map();
+  for (const t of sortTx(list)){ if (!groups.has(t.date)) groups.set(t.date, []); groups.get(t.date).push(t); }
+  const catOpts = S.ledgerType === "all" ? "" :
+    `<select id="lCat" style="margin-top:8px"><option value="">Tất cả hạng mục</option>${S.config.categories[S.ledgerType].map(c => `<option value="${esc(c.id)}" ${c.id===S.ledgerCat?"selected":""}>${esc(c.icon)} ${esc(c.name)}</option>`).join("")}</select>`;
+  let html = `
+    <div class="card">
+      <div class="chips" id="lTypes">
+        ${[["all","Tất cả"],...TYPE_KEYS.map(k => [k,TYPES[k].label])].map(([k,l]) => `<button class="chip" data-lt="${k}" aria-pressed="${S.ledgerType===k}">${l}</button>`).join("")}
+      </div>
+      ${catOpts}
+      <input type="text" id="lQ" placeholder="Tìm theo ghi chú, hạng mục, người…" value="${esc(S.ledgerQ)}" style="margin-top:8px">
+      <div class="row small" style="margin-top:10px;flex-wrap:wrap">
+        <span>${list.length} giao dịch</span>
+        <span class="num"><span style="color:var(--inc)">+${short(s.income)}</span> · <span style="color:var(--exp)">−${short(s.expense)}</span>${s.saving?` · <span style="color:var(--sav)">TK ${short(s.saving)}</span>`:""}${s.invest?` · <span style="color:var(--inv)">ĐT ${short(s.invest)}</span>`:""}</span>
+      </div>
+    </div>`;
+  if (!list.length) html += `<div class="empty">Không có giao dịch phù hợp trong kỳ này.</div>`;
+  for (const [date, items] of groups){
+    const d = parse(date), g = totals(items), net = g.income - g.expense;
+    html += `<div class="dayhead"><span>${WD[d.getDay()]}, ${dmy(d)}</span><span class="num">${net ? signed(net) : ""}</span></div>${items.map(txRow).join("")}`;
+  }
+  $("#v-ledger").innerHTML = html;
+  const qi = $("#lQ"); if (renderLedger._focus){ qi.focus(); qi.setSelectionRange(qi.value.length, qi.value.length); renderLedger._focus = false; }
+}
+
+function chartSVG(b){
+  const n = b.list.length, W = Math.max(340, n*26), H = 190, padL = 40, padB = 24, padT = 8;
+  const max = Math.max(1, ...b.list.map(x => Math.max(x.sum.income, x.sum.expense)));
+  const step = (W - padL - 6) / n, bw = Math.max(3, Math.min(14, step*0.34));
+  const y = v => padT + (H - padT - padB) * (1 - v/max);
+  let g = "";
+  for (let i = 0; i <= 3; i++){
+    const v = max * i/3, yy = y(v);
+    g += `<line x1="${padL}" x2="${W}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${padL-6}" y="${yy+4}" text-anchor="end" font-size="10" fill="var(--muted)">${esc(short(Math.round(v)))}</text>`;
+  }
+  const every = Math.ceil(n / 12);
+  b.list.forEach((x,i) => {
+    const cx = padL + step*i + step/2;
+    g += `<rect x="${cx-bw-1}" y="${y(x.sum.income)}" width="${bw}" height="${Math.max(0,y(0)-y(x.sum.income))}" rx="2" fill="var(--inc)"><title>${esc(x.label)}: thu ${money(x.sum.income)}</title></rect>`;
+    g += `<rect x="${cx+1}" y="${y(x.sum.expense)}" width="${bw}" height="${Math.max(0,y(0)-y(x.sum.expense))}" rx="2" fill="var(--exp)"><title>${esc(x.label)}: chi ${money(x.sum.expense)}</title></rect>`;
+    if (i % every === 0) g += `<text x="${cx}" y="${H-7}" text-anchor="middle" font-size="10" fill="var(--muted)">${esc(x.tick)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:max(100%, ${W}px);height:auto" role="img" aria-label="Biểu đồ thu và chi theo thời gian">${g}</svg>`;
+}
+
+function renderReport(){
+  const r = curRange(), list = inRange(r), s = totals(list), b = buckets(r);
+  const unitName = {day:"ngày", week:"tuần", month:"tháng"}[b.unit];
+  const t = S.reportType;
+  const members = new Map();
+  for (const x of list) if (x.type === t){ const k = x.member || "Chưa ghi người"; members.set(k, (members.get(k)||0) + x.amount); }
+  const memEntries = [...members].map(([name,v]) => ({name, v, icon:"👤"})).sort((a,b) => b.v - a.v);
+  let rows = "";
+  if (b.unit !== "none") rows = b.list.slice().reverse().map(x => `<tr><td>${esc(x.label)}</td><td class="num" style="color:var(--inc)">${NF.format(x.sum.income)}</td><td class="num" style="color:var(--exp)">${NF.format(x.sum.expense)}</td><td class="num">${NF.format(x.sum.saving + x.sum.invest)}</td><td class="num"><b>${NF.format(x.sum.income - x.sum.expense)}</b></td></tr>`).join("");
+  const days = daysBetween(r.from, r.to);
+  $("#v-report").innerHTML = `
+    <div class="card">
+      <h2>Thu và chi ${unitName ? "theo " + unitName : ""}</h2>
+      ${b.unit === "none" ? `<div class="muted small">Chọn Tuần, Tháng, Năm hoặc Tùy chọn để xem biểu đồ theo thời gian.</div>` :
+        `<div class="legend" style="opacity:1;margin-bottom:8px"><span><i style="background:var(--inc)"></i>Thu</span><span><i style="background:var(--exp)"></i>Chi</span></div><div class="chartwrap">${chartSVG(b)}</div>`}
+      <div class="row small" style="margin-top:10px"><span class="muted">Chi trung bình mỗi ngày (${days} ngày)</span><b class="num">${money(Math.round(s.expense / days))}</b></div>
+    </div>
+    <div class="card">
+      <div class="chips" id="rTypes">${TYPE_KEYS.map(k => `<button class="chip" data-rt="${k}" aria-pressed="${t===k}">${TYPES[k].label}</button>`).join("")}</div>
+      <div class="row" style="margin:12px 0 4px"><h2 style="margin:0">${TYPES[t].label} theo hạng mục</h2><b class="num">${money(s[t])}</b></div>
+      ${barList(byCategory(list,t), s[t], TYPES[t].color)}
+      ${S.config.members.length ? `<h2 style="margin-top:16px">${TYPES[t].label} theo thành viên</h2>${barList(memEntries, s[t], TYPES[t].color)}` : ""}
+    </div>
+    ${b.unit !== "none" ? `<div class="card">
+      <h2>Bảng tổng hợp</h2>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Mốc</th><th>Thu</th><th>Chi</th><th>TK + ĐT</th><th>Tích lũy</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr><td>Tổng</td><td class="num">${NF.format(s.income)}</td><td class="num">${NF.format(s.expense)}</td><td class="num">${NF.format(s.saving + s.invest)}</td><td class="num">${NF.format(s.income - s.expense)}</td></tr></tfoot>
+      </table></div>
+      <div class="note">Đơn vị: đồng. Tích lũy = thu − chi. TK + ĐT là phần tích lũy đã chuyển vào tiết kiệm và đầu tư.</div>
+    </div>` : ""}`;
+}
+
+function securityCard(){
+  const msg = S.pwMsg && S.pwMsg.text ? `<div class="${S.pwMsg.ok ? "okmsg" : "err"} small" style="margin-top:8px">${esc(S.pwMsg.text)}</div>` : "";
+  if (!CRYPTO_OK) return `<div class="card"><h2>Mật khẩu bảo vệ</h2><div class="small muted">Trình duyệt này không hỗ trợ mã hóa, chưa đặt được mật khẩu.</div></div>`;
+  const al = getAutoLock();
+  if (!S.lock) return `<div class="card"><h2>Mật khẩu bảo vệ</h2>
+    <div class="small muted">Khi đặt mật khẩu, giao dịch và cài đặt được mã hóa AES-256 ngay trên máy trước khi lưu. Mỗi lần mở sổ cần nhập mật khẩu.</div>
+    <div class="warn"><b>Quên mật khẩu là mất dữ liệu.</b> Không có cách khôi phục. Hãy xuất CSV dự phòng trước và báo mật khẩu cho người nhà cùng dùng.</div>
+    <div class="field"><span>Mật khẩu mới (ít nhất 6 ký tự)</span><input type="password" id="pwNew" autocomplete="new-password"></div>
+    <div class="field"><span>Nhập lại mật khẩu</span><input type="password" id="pwNew2" autocomplete="new-password"></div>
+    <div class="field"><span>Mã khôi phục (dùng khi quên mật khẩu)</span><input type="text" id="rcNew" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Ít nhất 6 ký tự"><button class="chip" id="rcGen" style="margin-top:6px">Tạo mã ngẫu nhiên</button></div>
+    ${msg}
+    <button class="btn" id="pwSet" ${S.pwBusy ? "disabled" : ""}>Đặt mật khẩu</button></div>`;
+  return `<div class="card"><h2>Mật khẩu bảo vệ</h2>
+    <div class="small"><span class="okmsg">● Đang bật.</span> <span class="muted">Dữ liệu được mã hóa trước khi lưu.</span></div>
+    <div class="field"><span>Tự khóa khi rời ứng dụng</span>
+      <select id="autoLock">${[[0,"Không tự khóa"],[1,"Sau 1 phút"],[5,"Sau 5 phút"],[15,"Sau 15 phút"],[60,"Sau 1 giờ"]].map(([v,l]) => `<option value="${v}" ${v===al?"selected":""}>${l}</option>`).join("")}</select></div>
+    <button class="btn" id="pwLockNow" style="background:var(--surface2);color:var(--ink);border:1px solid var(--line)">🔒 Khóa ngay</button>
+    <h2 style="margin-top:18px">Mã khôi phục</h2>
+    <div class="small">${S.lock.rwrapped ? `<span class="okmsg">● Đã có mã khôi phục.</span>` : `<span style="color:var(--exp)">● Chưa có mã khôi phục.</span>`} <span class="muted">Lưu mã mới sẽ thay mã cũ.</span></div>
+    <div class="field"><span>Mã khôi phục mới</span><input type="text" id="rcNew" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Ít nhất 6 ký tự"><button class="chip" id="rcGen" style="margin-top:6px">Tạo mã ngẫu nhiên</button></div>
+    <button class="btn" id="rcSave" ${S.pwBusy ? "disabled" : ""}>Lưu mã khôi phục</button>
+    ${S.lock.rwrapped ? `<button class="btn ghost" id="rcClear" ${S.pwBusy ? "disabled" : ""}>Xóa mã khôi phục</button>` : ""}
+    <h2 style="margin-top:18px">Đổi hoặc gỡ mật khẩu</h2>
+    <div class="field"><span>Mật khẩu hiện tại</span><input type="password" id="pwCur" autocomplete="current-password"></div>
+    <div class="field"><span>Mật khẩu mới</span><input type="password" id="pwNew" autocomplete="new-password"></div>
+    <div class="field"><span>Nhập lại mật khẩu mới</span><input type="password" id="pwNew2" autocomplete="new-password"></div>
+    ${msg}
+    <button class="btn" id="pwChange" ${S.pwBusy ? "disabled" : ""}>Đổi mật khẩu</button>
+    <button class="btn ghost" id="pwRemove" ${S.pwBusy ? "disabled" : ""}>Gỡ mật khẩu (chỉ cần mật khẩu hiện tại)</button></div>`;
+}
+function renderSettings(){
+  const keep = {}, focusId = document.activeElement && document.activeElement.id;
+  document.querySelectorAll("#v-settings input[id]:not([type=file])").forEach(i => keep[i.id] = i.value);
+  renderSettingsInner();
+  for (const id in keep){ const el = document.getElementById(id); if (el) el.value = keep[id]; }
+  if (focusId){ const el = document.getElementById(focusId); if (el && el.closest("#v-settings")) el.focus(); }
+}
+function renderSettingsInner(){
+  const t = S.settingsType, cats = S.config.categories[t];
+  const used = id => S.txs.filter(x => x.type === t && x.cat === id).length;
+  $("#v-settings").innerHTML = securityCard() + backupCard() + `
+    <div class="card">
+      <h2>Thành viên gia đình</h2>
+      <div class="list" id="memList">${S.config.members.map((m,i) => `<div class="item"><input type="text" data-mi="${i}" value="${esc(m)}" maxlength="40" aria-label="Tên thành viên"><button class="del" data-mdel="${i}" aria-label="Xóa ${esc(m)}">✕</button></div>`).join("") || `<div class="muted small">Chưa có thành viên. Thêm để ghi rõ ai chi, ai nhận.</div>`}</div>
+      <div class="addrow"><input type="text" id="memNew" placeholder="Ví dụ: Bố, Mẹ, Con" maxlength="40"><button class="go" id="memAdd">Thêm</button></div>
+    </div>
+    <div class="card">
+      <h2>Hạng mục</h2>
+      <div class="chips" id="sTypes">${TYPE_KEYS.map(k => `<button class="chip" data-st="${k}" aria-pressed="${t===k}">${TYPES[k].label}</button>`).join("")}</div>
+      <div class="list" style="margin-top:8px">${cats.map(c => `<div class="item">
+        <input type="text" class="em" data-ci="${esc(c.id)}" data-f="icon" value="${esc(c.icon)}" maxlength="4" aria-label="Biểu tượng">
+        <input type="text" data-ci="${esc(c.id)}" data-f="name" value="${esc(c.name)}" maxlength="40" aria-label="Tên hạng mục">
+        <button class="del" data-cdel="${esc(c.id)}" data-used="${used(c.id)}" aria-label="Xóa ${esc(c.name)}">✕</button></div>`).join("")}</div>
+      <div class="addrow"><input type="text" class="em" id="catIcon" placeholder="🙂" maxlength="4" style="width:52px;flex:none"><input type="text" id="catNew" placeholder="Tên hạng mục mới" maxlength="40"><button class="go" id="catAdd">Thêm</button></div>
+    </div>
+    <div class="card">
+      <h2>Dữ liệu</h2>
+      <div class="small muted">${S.store === "db" ? "Dữ liệu được lưu cùng trang này và đồng bộ giữa các thiết bị. Chia sẻ trang với người nhà ở quyền Contributor để cùng ghi chép." : "Dữ liệu đang lưu trên trình duyệt của thiết bị này."}</div>
+      <div class="small" style="margin-top:6px">Tổng số giao dịch: <b class="num">${NF.format(S.txs.length)}</b></div>
+      <button class="btn" id="exportCsv">Xuất file CSV kỳ đang chọn</button>
+      <button class="btn" id="exportAll" style="background:var(--surface2);color:var(--ink);border:1px solid var(--line);margin-top:8px">Xuất CSV toàn bộ</button>
+    </div>`;
+}
+
+function renderLock(){
+  const scr = $("#lockscr"), loading = !S.lockKnown, locked = isLocked();
+  const show = loading || locked;
+  const wasHidden = scr.hidden;
+  scr.hidden = !show;
+  $("#fab").classList.toggle("hidden", show);
+  $("#lockBtn").classList.toggle("hidden", !(S.lock && S.key));
+  $("#lockForm").classList.toggle("hidden", loading || !!S.recMode);
+  $("#recForm").classList.toggle("hidden", loading || !S.recMode);
+  $("#toRecover").classList.toggle("hidden", !(S.lock && S.lock.rwrapped));
+  $("#lockMsg").textContent = loading ? ($("#sync").textContent === "Chưa kết nối được" ? "Chưa kết nối được dữ liệu. Kiểm tra mạng rồi mở lại trang." : "Đang tải…") : S.recMode ? "Nhập mã khôi phục và đặt mật khẩu mới." : "Nhập mật khẩu để mở sổ.";
+  if (show && locked && wasHidden){ $("#lockPw").value = ""; $("#lockErr").textContent = ""; setTimeout(() => $("#lockPw").focus(), 50); }
+  return show;
+}
+function render(){
+  if (renderLock()) { for (const v of ["overview","ledger","savings","report","settings"]) $("#v-"+v).innerHTML = ""; return; }
+  const r = curRange();
+  $("#plabel").textContent = r.label;
+  document.querySelectorAll("#modeSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === S.mode));
+  $("#custom").classList.toggle("on", S.mode === "custom");
+  $("#prev").style.visibility = $("#next").style.visibility = S.mode === "custom" ? "hidden" : "visible";
+  $("#modeSeg").parentElement.querySelector(".period").classList.toggle("hidden", false);
+  const hideHeader = S.view === "settings" || S.view === "savings";
+  $("#modeSeg").classList.toggle("hidden", hideHeader);
+  $("#periodNav").classList.toggle("hidden", hideHeader);
+  if (hideHeader) $("#custom").classList.remove("on");
+  for (const v of ["overview","ledger","savings","report","settings"]) $("#v-"+v).classList.toggle("hidden", S.view !== v);
+  document.querySelectorAll("nav button").forEach(b => b.toggleAttribute("aria-current", false));
+  document.querySelector(`nav button[data-v="${S.view}"]`).setAttribute("aria-current","page");
+  if (S.view === "overview") renderOverview();
+  if (S.view === "ledger") renderLedger();
+  if (S.view === "report") renderReport();
+  if (S.view === "settings") renderSettings();
+  if (S.view === "savings") (S.assetTab === "gold" ? renderGold() : S.assetTab === "real" ? renderReal() : renderSavings());
+}
+
+/* ---------- Savings books (sổ tiết kiệm) ---------- */
+const diffDays = (a,b) => Math.round((parse(b) - parse(a)) / 864e5);
+function addMonths(s, n){
+  const d = parse(s), last = new Date(d.getFullYear(), d.getMonth()+n+1, 0).getDate();
+  return ymd(new Date(d.getFullYear(), d.getMonth()+n, Math.min(d.getDate(), last)));
+}
+/* Lãi = gốc × lãi suất năm × số ngày thực gửi ÷ 365. rX100 = lãi suất × 100 (5,5% → 550). Số nguyên chính xác, làm tròn đến đồng. */
+function interestOf(P, rX100, days){
+  if (P <= 0 || rX100 <= 0 || days <= 0) return 0;
+  const num = BigInt(P) * BigInt(rX100) * BigInt(days), den = 3650000n;
+  return Number((num * 2n + den) / (2n * den));
+}
+const rateStr = x => String(x/100).replace(".", ",");
+const fmtRate = x => rateStr(x) + "%/năm";
+function parseRate(v){
+  const t = String(v).trim().replace(",", ".");
+  if (!/^\d{1,3}(\.\d{1,3})?$/.test(t)) return NaN;
+  return Math.round(parseFloat(t) * 100);
+}
+const TERM_OPTS = [0,1,2,3,6,9,12,13,18,24,36];
+const termName = t => t ? t + " tháng" : "Không kỳ hạn";
+const ROLL = {none:"Không tái tục, rút cả gốc và lãi", principal:"Tái tục gốc, rút lãi", all:"Tái tục cả gốc và lãi"};
+function cleanSav(id, d){
+  if (!d || !Number.isSafeInteger(d.principal) || d.principal <= 0 || d.principal > 1e14 || !isYmd(d.start)) return null;
+  const rate = Number(d.rate), nt = Number(d.ntRate), term = Number(d.term);
+  if (!Number.isInteger(rate) || rate < 0 || rate > 10000 || !Number.isInteger(term) || term < 0 || term > 120) return null;
+  const s = {id, name:String(d.name||"").slice(0,60), bank:String(d.bank||"").slice(0,60), principal:d.principal, rate, term, start:d.start,
+    pay: d.pay === "monthly" && term ? "monthly" : "end",
+    roll: term && ["none","principal","all"].includes(d.roll) ? d.roll : "none",
+    ntRate: Number.isInteger(nt) && nt >= 0 && nt <= 10000 ? nt : 10,
+    member:String(d.member||"").slice(0,40), note:String(d.note||"").slice(0,140), createdAt:Number(d.createdAt)||0, closed:null};
+  if (s.pay === "monthly" && s.roll === "all") s.roll = "principal";
+  const c = d.closed;
+  if (c && isYmd(c.date) && Number.isSafeInteger(c.payout) && Number.isSafeInteger(c.interest)) s.closed = {date:c.date, payout:c.payout, interest:c.interest};
+  return s;
+}
+const savName = s => s.name || s.bank || "Sổ tiết kiệm";
+/* Các kỳ gửi đến ngày asOf (có tái tục). Ngày đến hạn tính từ ngày gửi gốc để không lệch ngày. */
+function savCycles(s, asOf){
+  const out = [];
+  if (!s.term) return out;
+  let start = s.start, P = s.principal;
+  for (let k = 1; k <= 600; k++){
+    const end = addMonths(s.start, s.term * k);
+    let I = 0; const months = [];
+    if (s.pay === "monthly"){
+      for (let i = 1; i <= s.term; i++){
+        const a = addMonths(s.start, s.term*(k-1) + i - 1), b = addMonths(s.start, s.term*(k-1) + i);
+        const v = interestOf(P, s.rate, diffDays(a, b)); months.push({from:a, end:b, v}); I += v;
+      }
+    } else I = interestOf(P, s.rate, diffDays(start, end));
+    out.push({k, start, end, P, I, months});
+    if (end > asOf || s.roll === "none") break;
+    start = end;
+    if (s.roll === "all") P = P + I;
+  }
+  return out;
+}
+/* Tình trạng sổ nếu tất toán vào ngày asOf */
+function savState(s, asOf){
+  if (!s.term){
+    const days = Math.max(0, diffDays(s.start, asOf)), I = interestOf(s.principal, s.rate, days);
+    return {kind:"demand", P:s.principal, days, accrued:I, due:I, payout:s.principal + I, totalInterest:I, receivedPrev:0};
+  }
+  const cyc = savCycles(s, asOf), c = cyc[cyc.length-1];
+  let receivedPrev = 0;
+  if (s.roll === "principal") for (const x of cyc.slice(0, -1)) receivedPrev += x.I;
+  const capitalized = c.P - s.principal;
+  if (asOf >= c.end){
+    const base = s.pay === "monthly" ? c.P : c.P + c.I;
+    const post = interestOf(base, s.ntRate, diffDays(c.end, asOf));
+    const due = (s.pay === "monthly" ? 0 : c.I) + post;
+    return {kind:"matured", cycles:cyc, cycle:c, P:c.P, post, due, payout:c.P + due, receivedPrev,
+            paidInCycle: s.pay === "monthly" ? c.I : 0, totalInterest: capitalized + receivedPrev + c.I + post};
+  }
+  const days = diffDays(c.start, asOf), termDays = diffDays(c.start, c.end);
+  const paidInCycle = s.pay === "monthly" ? c.months.filter(m => m.end <= asOf).reduce((a,m) => a + m.v, 0) : 0;
+  const early = interestOf(c.P, s.ntRate, days);
+  const due = early - paidInCycle;
+  return {kind:"active", cycles:cyc, cycle:c, P:c.P, days, termDays, left:diffDays(asOf, c.end),
+          accrued:interestOf(c.P, s.rate, days), atMaturity:c.I, early, paidInCycle, due, payout:c.P + due,
+          receivedPrev, totalInterest: capitalized + receivedPrev + early};
+}
+const pickCat = (type, pref) => { const cs = S.config.categories[type] || []; return (cs.find(c => c.id === pref) || cs[0] || {id:pref}).id; };
+
+function renderSavings(){
+  const today = ymd(new Date());
+  const open = S.savs.filter(s => !s.closed), closed = S.savs.filter(s => s.closed);
+  let P = 0, accrued = 0, atMat = 0, soon = 0;
+  const st = new Map();
+  for (const s of open){
+    const x = savState(s, today); st.set(s.id, x); P += x.P;
+    if (x.kind === "active"){ accrued += x.accrued; atMat += x.atMaturity; if (x.left <= 7) soon++; }
+    else if (x.kind === "demand") accrued += x.accrued;
+    else { accrued += x.due; soon++; }
+  }
+  const earned = closed.reduce((a,s) => a + s.closed.interest, 0);
+  const key = s => { const x = st.get(s.id); return x.kind === "demand" ? "9999" : x.cycle.end; };
+  open.sort((a,b) => key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0);
+  closed.sort((a,b) => a.closed.date < b.closed.date ? 1 : -1);
+  $("#v-savings").innerHTML = assetSeg() + `
+    <div class="card hero" style="background:var(--sav)">
+      <div class="k">Đang gửi tiết kiệm (${open.length} sổ)</div>
+      <div class="big num">${money(P)}</div>
+      <div class="legend" style="margin-top:8px">
+        <span>Lãi tạm tính đến hôm nay ${short(accrued)}</span>
+        <span>Lãi khi đến hạn ${short(atMat)}</span>
+        ${earned ? `<span>Lãi đã nhận từ sổ đã tất toán ${short(earned)}</span>` : ""}
+      </div>
+    </div>
+    ${soon ? `<div class="warn">Có ${soon} sổ đã đến hạn hoặc đến hạn trong 7 ngày tới.</div>` : ""}
+    <button class="btn" data-sav-new>+ Mở sổ tiết kiệm</button>
+    ${open.length ? open.map(s => savCard(s, st.get(s.id))).join("") : `<div class="empty">Chưa có sổ tiết kiệm nào. Bấm <b>+ Mở sổ tiết kiệm</b>, nhập số tiền, lãi suất và kỳ hạn để ứng dụng tự tính lãi.</div>`}
+    ${closed.length ? `<h2 style="margin:22px 4px 0">Sổ đã tất toán</h2>${closed.map(s => savCard(s, null)).join("")}` : ""}`;
+}
+function savCard(s, x){
+  let badge, lines, prog = "";
+  if (s.closed){
+    badge = `<span class="badge done">Đã tất toán</span>`;
+    lines = `<div class="row small"><span class="muted">Tất toán ${dmy(parse(s.closed.date))}</span><span class="num">Nhận ${money(s.closed.payout)}</span></div>
+             <div class="row small"><span class="muted">Tổng tiền lãi</span><b class="num" style="color:var(--inc)">+${money(s.closed.interest)}</b></div>`;
+  } else if (x.kind === "demand"){
+    badge = `<span class="badge">Không kỳ hạn</span>`;
+    lines = `<div class="row small"><span class="muted">Lãi tạm tính đến hôm nay (${x.days} ngày)</span><b class="num" style="color:var(--inc)">+${money(x.accrued)}</b></div>`;
+  } else if (x.kind === "matured"){
+    badge = `<span class="badge warn2">Đã đến hạn</span>`;
+    lines = `<div class="row small"><span class="muted">Đến hạn ${dmy(parse(x.cycle.end))}, chờ tất toán</span><b class="num">${money(x.payout)}</b></div>`;
+  } else {
+    badge = `<span class="badge ${x.left <= 7 ? "warn2" : ""}">${x.left === 0 ? "Đến hạn hôm nay" : "Còn " + x.left + " ngày"}</span>`;
+    prog = `<div class="prog"><span style="width:${Math.min(100, x.days / x.termDays * 100)}%"></span></div>`;
+    lines = `<div class="row small"><span class="muted">Đến hạn ${dmy(parse(x.cycle.end))}${x.cycle.k > 1 ? `, kỳ thứ ${x.cycle.k}` : ""}</span><span class="num">Lãi tạm tính +${short(x.accrued)}</span></div>
+             <div class="row small"><span class="muted">Lãi khi đến hạn</span><b class="num" style="color:var(--inc)">+${money(x.atMaturity)}</b></div>`;
+  }
+  const amt = s.closed ? s.principal : x.P;
+  return `<button class="savc" data-sid="${esc(s.id)}">
+    <div class="top"><div><div class="nm">${esc(savName(s))}</div><div class="bk">${esc([s.name ? s.bank : "", fmtRate(s.rate), termName(s.term), s.term ? (s.pay === "monthly" ? "lãi hàng tháng" : "lãi cuối kỳ") : ""].filter(Boolean).join(", "))}</div></div>${badge}</div>
+    <div class="amt2 num">${money(amt)}</div>${prog}${lines}</button>`;
+}
+
+/* Sheet: mở / sửa sổ */
+const SV = {editing:null, cur:null};
+function showSsheet(html){ $("#ssheet").innerHTML = html; $("#scrim").classList.add("on"); $("#ssheet").classList.add("on"); $("#ssheet").scrollTop = 0; }
+function openSav(s){
+  SV.editing = s || null; SV.cur = null;
+  const mem = S.config.members.slice(); if (s && s.member && !mem.includes(s.member)) mem.push(s.member);
+  const terms = TERM_OPTS.slice(); if (s && !terms.includes(s.term)) terms.push(s.term);
+  showSsheet(`<div class="grab"></div>
+    <div class="row"><h2 style="margin:0">${s ? "Sửa sổ tiết kiệm" : "Mở sổ tiết kiệm"}</h2><button class="iconbtn" data-close aria-label="Đóng">✕</button></div>
+    <div class="two">
+      <div class="field"><span>Tên sổ</span><input type="text" id="sName" maxlength="60" placeholder="Quỹ học cho con" value="${esc(s ? s.name : "")}"></div>
+      <div class="field"><span>Ngân hàng</span><input type="text" id="sBank" maxlength="60" placeholder="Tên ngân hàng" value="${esc(s ? s.bank : "")}"></div>
+    </div>
+    <div class="field"><span>Số tiền gửi (đồng)</span><input class="amount num" id="sAmt" inputmode="numeric" autocomplete="off" placeholder="0" value="${s ? NF.format(s.principal) : ""}"></div>
+    <div class="two">
+      <div class="field"><span>Lãi suất (%/năm)</span><input type="text" id="sRate" inputmode="decimal" autocomplete="off" placeholder="5,5" value="${s ? rateStr(s.rate) : ""}"></div>
+      <div class="field"><span>Kỳ hạn</span><select id="sTerm">${terms.map(t => `<option value="${t}">${termName(t)}</option>`).join("")}</select></div>
+    </div>
+    <div class="two">
+      <div class="field"><span>Ngày gửi</span><input type="date" id="sStart" value="${s ? s.start : ymd(new Date())}"></div>
+      <div class="field"><span>Trả lãi</span><select id="sPay"><option value="end">Cuối kỳ</option><option value="monthly">Hàng tháng</option></select></div>
+    </div>
+    <div class="field"><span>Khi đến hạn</span><select id="sRoll">${Object.entries(ROLL).map(([k,l]) => `<option value="${k}">${l}</option>`).join("")}</select></div>
+    <div class="two">
+      <div class="field"><span>Lãi khi rút trước hạn (%/năm)</span><input type="text" id="sNt" inputmode="decimal" autocomplete="off" value="${s ? rateStr(s.ntRate) : "0,1"}"></div>
+      ${mem.length ? `<div class="field"><span>Người gửi</span><select id="sMem"><option value="">Không ghi</option>${mem.map(m => `<option ${s && s.member === m ? "selected" : ""}>${esc(m)}</option>`).join("")}</select></div>` : "<div></div>"}
+    </div>
+    <div class="field"><span>Ghi chú</span><input type="text" id="sNote" maxlength="140" value="${esc(s ? s.note : "")}"></div>
+    ${s ? "" : `<label class="check"><input type="checkbox" id="sLog" checked><span>Ghi vào sổ thu chi: chuyển số tiền này vào mục Tiết kiệm</span></label>`}
+    <div class="preview" id="sPrev"></div>
+    <div class="err" id="sErr" role="alert"></div>
+    <button class="btn" id="sSave">${s ? "Lưu thay đổi" : "Mở sổ"}</button>
+    ${s ? `<button class="btn ghost" id="sDel">Xóa sổ</button>` : ""}`);
+  $("#sTerm").value = String(s ? s.term : 6);
+  $("#sPay").value = s ? s.pay : "end";
+  $("#sRoll").value = s ? s.roll : "none";
+  syncSavForm(); savPreview();
+  if (!s) setTimeout(() => $("#sAmt") && $("#sAmt").focus(), 230);
+}
+function syncSavForm(){
+  const term = Number($("#sTerm").value), pay = $("#sPay"), roll = $("#sRoll");
+  pay.disabled = roll.disabled = !term;
+  if (!term){ pay.value = "end"; roll.value = "none"; }
+  roll.querySelector('option[value="all"]').disabled = pay.value === "monthly";
+  if (pay.value === "monthly" && roll.value === "all") roll.value = "principal";
+}
+function readSavForm(){
+  const P = parseAmount($("#sAmt").value), rate = parseRate($("#sRate").value), nt = parseRate($("#sNt").value.trim() || "0");
+  const term = Number($("#sTerm").value), start = $("#sStart").value;
+  let err = "";
+  if (Number.isNaN(P) || P > 1e14) err = "Số tiền quá lớn.";
+  else if (!P) err = "Nhập số tiền gửi.";
+  else if (Number.isNaN(rate) || rate > 10000) err = "Lãi suất chưa đúng. Ví dụ: 5,5";
+  else if (Number.isNaN(nt) || nt > 10000) err = "Lãi suất rút trước hạn chưa đúng. Ví dụ: 0,1";
+  else if (!isYmd(start)) err = "Chọn ngày gửi.";
+  if (err) return {err, s:null};
+  const s = cleanSav("tmp", {name:$("#sName").value.trim(), bank:$("#sBank").value.trim(), principal:P, rate, term, start,
+    pay:$("#sPay").value, roll:$("#sRoll").value, ntRate:nt, member:$("#sMem") ? $("#sMem").value : "", note:$("#sNote").value.trim()});
+  return s ? {err:"", s} : {err:"Thông tin chưa hợp lệ.", s:null};
+}
+function prow(k, v, strong){ return `<div class="row"><span class="muted">${k}</span>${strong ? `<b class="num">${v}</b>` : `<span class="num">${v}</span>`}</div>`; }
+function savPreview(){
+  const el = $("#sPrev"); if (!el) return;
+  const {s} = readSavForm();
+  if (!s){ el.innerHTML = `<div class="muted small">Nhập số tiền và lãi suất để xem tiền lãi.</div>`; return; }
+  const f = `<div class="note">Lãi = số tiền gửi × lãi suất năm × số ngày gửi thực tế ÷ 365, làm tròn đến đồng.</div>`;
+  if (!s.term){
+    el.innerHTML = prow("Lãi mỗi 30 ngày", "+" + money(interestOf(s.principal, s.rate, 30))) + prow("Lãi 1 năm (365 ngày)", "+" + money(interestOf(s.principal, s.rate, 365)), true) + f;
+    return;
+  }
+  const c = savCycles(s, s.start)[0];
+  el.innerHTML = prow("Ngày đến hạn", `${dmy(parse(c.end))} (${diffDays(c.start, c.end)} ngày)`)
+    + (s.pay === "monthly" ? prow("Lãi mỗi tháng", c.months.length ? `${money(Math.min(...c.months.map(m => m.v)))} – ${money(Math.max(...c.months.map(m => m.v)))}` : "0") : "")
+    + prow("Tiền lãi cả kỳ", `<span style="color:var(--inc)">+${money(c.I)}</span>`, true)
+    + prow(s.pay === "monthly" ? "Gốc nhận lại khi đến hạn" : "Tổng nhận khi đến hạn", money(s.pay === "monthly" ? c.P : c.P + c.I), true) + f;
+}
+async function saveSavForm(){
+  const {err, s} = readSavForm();
+  if (err){ $("#sErr").textContent = err; return; }
+  const ed = SV.editing;
+  const obj = {...s, id: ed ? ed.id : newId(), createdAt: ed ? ed.createdAt : Date.now(), closed: ed ? ed.closed : null};
+  const log = !ed && $("#sLog") && $("#sLog").checked;
+  $("#sSave").disabled = true;
+  try {
+    await writeSav(obj);
+    if (log) await writeTx({id:newId(), type:"saving", amount:obj.principal, cat:pickCat("saving","guinh"), date:obj.start,
+      note:("Mở sổ " + savName(obj)).slice(0,140), member:obj.member, createdAt:Date.now(), wd:false, sav:obj.id});
+    closeSheet(); toast(ed ? "Đã lưu thay đổi" : "Đã mở sổ tiết kiệm");
+  } catch(e){ $("#sErr").textContent = e && e.code === "invalid_argument" ? "Bạn chỉ có quyền xem, không thể ghi." : "Chưa lưu được. Thử lại."; $("#sSave").disabled = false; }
+}
+
+/* Sheet: chi tiết + tất toán */
+function openSavDetail(s){
+  SV.cur = s; SV.editing = null;
+  const today = ymd(new Date()), asOf = s.closed ? s.closed.date : today, x = savState(s, asOf);
+  let cyc = "";
+  if (s.term){
+    cyc = `<h2 style="margin-top:16px">Các kỳ gửi</h2><div class="tablewrap"><table><thead><tr><th>Kỳ</th><th>Từ ngày</th><th>Đến hạn</th><th>Gốc</th><th>Lãi cả kỳ</th></tr></thead><tbody>
+      ${x.cycles.map(c => `<tr><td>${c.k}</td><td>${dmy(parse(c.start))}</td><td>${dmy(parse(c.end))}</td><td class="num">${NF.format(c.P)}</td><td class="num">${NF.format(c.I)}</td></tr>`).join("")}
+      </tbody></table></div>`;
+    if (s.pay === "monthly" && x.cycle) cyc += `<h2 style="margin-top:16px">Lãi từng tháng, kỳ ${x.cycle.k}</h2><div class="tablewrap"><table><thead><tr><th>Ngày trả</th><th>Số ngày</th><th>Tiền lãi</th><th></th></tr></thead><tbody>
+      ${x.cycle.months.map(m => `<tr><td>${dmy(parse(m.end))}</td><td class="num">${diffDays(m.from, m.end)}</td><td class="num">${NF.format(m.v)}</td><td class="small">${m.end <= asOf ? "Đã trả" : ""}</td></tr>`).join("")}
+      </tbody></table></div>`;
+  }
+  const info = `<div class="preview">
+      ${prow("Số tiền gửi ban đầu", money(s.principal), true)}
+      ${prow("Lãi suất", fmtRate(s.rate))}
+      ${prow("Kỳ hạn", termName(s.term) + (s.term ? (s.pay === "monthly" ? ", lãi hàng tháng" : ", lãi cuối kỳ") : ""))}
+      ${prow("Ngày gửi", dmy(parse(s.start)))}
+      ${s.term ? prow("Khi đến hạn", ROLL[s.roll]) : ""}
+      ${prow("Lãi khi rút trước hạn", fmtRate(s.ntRate))}
+      ${s.member ? prow("Người gửi", esc(s.member)) : ""}
+      ${s.note ? prow("Ghi chú", esc(s.note)) : ""}
+    </div>`;
+  const settle = s.closed
+    ? `<div class="preview">${prow("Ngày tất toán", dmy(parse(s.closed.date)))}${prow("Số tiền nhận khi tất toán", money(s.closed.payout), true)}${prow("Tổng tiền lãi cả sổ", `<span style="color:var(--inc)">+${money(s.closed.interest)}</span>`, true)}</div>
+       <button class="btn ghost" id="sReopen" style="color:var(--ink)">Hủy tất toán</button>`
+    : `<h2 style="margin-top:18px">Tất toán hoặc tính thử</h2>
+       <div class="field"><span>Ngày rút tiền</span><input type="date" id="sDate" value="${today}"></div>
+       <div class="preview" id="sSet"></div>
+       <label class="check"><input type="checkbox" id="sLog2" checked><span>Ghi vào sổ thu chi: rút gốc khỏi Tiết kiệm và ghi tiền lãi vào Thu nhập</span></label>
+       <div class="err" id="sErr" role="alert"></div>
+       <button class="btn" id="sSettle">Tất toán sổ</button>`;
+  showSsheet(`<div class="grab"></div>
+    <div class="row"><h2 style="margin:0">${esc(savName(s))}</h2><button class="iconbtn" data-close aria-label="Đóng">✕</button></div>
+    ${s.name && s.bank ? `<div class="muted small">${esc(s.bank)}</div>` : ""}
+    ${info}${settle}${cyc}
+    <button class="btn" id="sEdit" style="background:var(--surface2);color:var(--ink);border:1px solid var(--line)">Sửa thông tin sổ</button>
+    <button class="btn ghost" id="sDel">Xóa sổ</button>`);
+  if (!s.closed) settlePreview();
+}
+function settlePreview(){
+  const el = $("#sSet"), s = SV.cur; if (!el || !s) return;
+  const d = $("#sDate").value;
+  if (!isYmd(d) || d < s.start){ el.innerHTML = `<div class="muted small">Chọn ngày từ ngày gửi ${dmy(parse(s.start))} trở đi.</div>`; return; }
+  const x = savState(s, d);
+  let h = prow(x.kind === "active" && x.cycle.k > 1 ? `Gốc kỳ hiện tại (kỳ ${x.cycle.k})` : "Tiền gốc", money(x.P));
+  if (x.kind === "demand") h += prow(`Tiền lãi (${x.days} ngày)`, `<span style="color:var(--inc)">+${money(x.due)}</span>`);
+  if (x.kind === "matured"){
+    h += prow("Lãi đúng hạn", "+" + money(x.cycle.I) + (s.pay === "monthly" ? " (đã trả hàng tháng)" : ""));
+    if (x.post) h += prow(`Lãi sau đến hạn (${diffDays(x.cycle.end, d)} ngày)`, "+" + money(x.post));
+  }
+  if (x.kind === "active"){
+    h += prow(`Lãi rút trước hạn (${x.days}/${x.termDays} ngày)`, "+" + money(x.early));
+    if (x.paidInCycle) h += prow("Trừ lãi tháng đã trả", "−" + money(x.paidInCycle));
+  }
+  h += prow("Số tiền nhận khi tất toán", money(x.payout), true);
+  if (x.receivedPrev) h += prow("Lãi đã nhận ở các kỳ trước", "+" + money(x.receivedPrev));
+  h += prow("Tổng tiền lãi cả sổ", `<span style="color:var(--inc)">+${money(x.totalInterest)}</span>`, true);
+  if (x.kind === "active") h += `<div class="warn">Rút trước hạn: lãi tính theo lãi suất không kỳ hạn ${fmtRate(s.ntRate)}. Nếu giữ đến ${dmy(parse(x.cycle.end))} sẽ được +${money(x.atMaturity)}.</div>`;
+  if (x.kind === "matured" && x.post) h += `<div class="note">Sau ngày đến hạn, phần tiền chưa rút được tính lãi không kỳ hạn ${fmtRate(s.ntRate)}.</div>`;
+  el.innerHTML = h;
+}
+async function settleSav(){
+  const s = S.savs.find(v => v.id === SV.cur.id) || SV.cur, d = $("#sDate").value, today = ymd(new Date());
+  if (!isYmd(d) || d < s.start){ $("#sErr").textContent = "Ngày rút tiền chưa hợp lệ."; return; }
+  if (d > today){ $("#sErr").textContent = "Ngày trong tương lai chỉ dùng để tính thử. Chọn hôm nay hoặc ngày đã qua để tất toán."; return; }
+  const x = savState(s, d), log = $("#sLog2").checked;
+  $("#sSettle").disabled = true;
+  try {
+    await writeSav({...s, closed:{date:d, payout:x.payout, interest:x.totalInterest}});
+    if (log){
+      await writeTx({id:newId(), type:"saving", amount:s.principal, cat:pickCat("saving","guinh"), date:d, note:("Tất toán " + savName(s)).slice(0,140), member:s.member, createdAt:Date.now(), wd:true, sav:s.id});
+      if (x.totalInterest > 0) await writeTx({id:newId(), type:"income", amount:x.totalInterest, cat:pickCat("income","laidt"), date:d, note:("Lãi " + savName(s)).slice(0,140), member:s.member, createdAt:Date.now()+1, wd:false, sav:s.id});
+    }
+    closeSheet(); toast("Đã tất toán sổ");
+  } catch(e){ $("#sErr").textContent = "Chưa tất toán được. Thử lại."; $("#sSettle").disabled = false; }
+}
+$("#ssheet").addEventListener("click", async e => {
+  const t = e.target;
+  if (t.closest("[data-close]")){ closeSheet(); return; }
+  if (t.id === "sSave") return saveSavForm();
+  if (t.id === "sSettle") return settleSav();
+  if (t.id === "sEdit"){ const s = S.savs.find(v => v.id === SV.cur.id) || SV.cur; openSav(s); return; }
+  if (t.id === "sReopen"){
+    const s = S.savs.find(v => v.id === SV.cur.id) || SV.cur;
+    try { await writeSav({...s, closed:null}); closeSheet(); toast("Đã hủy tất toán. Các giao dịch đã ghi vẫn giữ nguyên trong sổ thu chi."); } catch(err){ toast("Chưa lưu được"); }
+    return;
+  }
+  if (t.id === "sDel"){
+    if (!t.dataset.armed){ t.dataset.armed = "1"; t.textContent = "Bấm lần nữa để xóa sổ"; return; }
+    const id = (SV.cur || SV.editing).id;
+    try { await removeSav(id); closeSheet(); toast("Đã xóa sổ. Giao dịch liên quan vẫn còn trong sổ thu chi."); } catch(err){ toast("Chưa xóa được"); }
+  }
+});
+$("#ssheet").addEventListener("input", e => {
+  if (e.target.id === "sAmt"){ const v = parseAmount(e.target.value); e.target.value = v ? NF.format(v) : ""; }
+  if ($("#sPrev")) savPreview();
+});
+$("#ssheet").addEventListener("change", e => {
+  if (["sTerm","sPay","sRoll"].includes(e.target.id)) syncSavForm();
+  if ($("#sPrev")) savPreview();
+  if (e.target.id === "sDate") settlePreview();
+});
+
+/* ---------- Gold (vàng) ---------- */
+const GTYPES = {nhan:"Nhẫn tròn trơn", mieng:"Vàng miếng", trangsuc:"Trang sức", khac:"Vàng khác"};
+const GICON = {nhan:"💍", mieng:"🥇", trangsuc:"📿", khac:"🟡"};
+const GT_KEYS = Object.keys(GTYPES);
+/* 1 lượng (cây) = 10 chỉ = 100 phân = 1000 ly; 1 chỉ = 3,75 g. Khối lượng lưu bằng số nguyên "ly". */
+const UNIT_LY = {luong:1000, chi:100, phan:10, ly:1};
+const UNIT_NAME = {luong:"lượng", chi:"chỉ", phan:"phân", ly:"ly"};
+const mulDiv = (a, b, c) => { const n = BigInt(a) * BigInt(b), d = BigInt(c); return Number((n * 2n + d) / (2n * d)); };
+function fmtWeight(ly){
+  if (!ly) return "0 chỉ";
+  let r = Math.abs(ly); const parts = [];
+  for (const u of ["luong","chi","phan","ly"]){ const q = Math.floor(r / UNIT_LY[u]); r -= q * UNIT_LY[u]; if (q) parts.push(q + " " + UNIT_NAME[u]); }
+  return (ly < 0 ? "−" : "") + parts.join(" ");
+}
+const chiStr = ly => NF.format(ly / 100) + " chỉ";
+const grams = ly => NF.format(Math.round(ly * 3.75) / 100) + " g";
+function parseWeight(v, unit){
+  const t = String(v).trim().replace(",", ".");
+  if (!/^\d{1,6}(\.\d{1,3})?$/.test(t)) return NaN;
+  const [i, f = ""] = t.split(".");
+  const ly = Number(i + f) * UNIT_LY[unit] / 10 ** f.length;
+  return Number.isInteger(ly) ? ly : NaN;
+}
+const perChi = (price, pUnit) => mulDiv(price, 100, UNIT_LY[pUnit]);
+function cleanGold(id, d){
+  if (!d || (d.side !== "buy" && d.side !== "sell") || !GTYPES[d.gtype] || !isYmd(d.date)) return null;
+  if (!Number.isSafeInteger(d.weight) || d.weight <= 0 || d.weight > 1e8) return null;
+  if (!Number.isSafeInteger(d.price) || d.price < 0 || d.price > 1e12 || !UNIT_LY[d.pUnit] || (d.pUnit !== "chi" && d.pUnit !== "luong")) return null;
+  if (!Number.isSafeInteger(d.total) || d.total <= 0 || d.total > 1e14) return null;
+  return {id, side:d.side, gtype:d.gtype, brand:String(d.brand||"").slice(0,40), weight:d.weight, price:d.price, pUnit:d.pUnit, total:d.total,
+          date:d.date, note:String(d.note||"").slice(0,140), member:String(d.member||"").slice(0,40), createdAt:Number(d.createdAt)||0};
+}
+/* Sổ vàng theo phương pháp giá vốn bình quân, tính riêng từng loại vàng */
+function goldBook(list = S.golds){
+  const st = {}; for (const k of GT_KEYS) st[k] = {w:0, cost:0, realized:0, bought:0, sold:0, n:0};
+  const ops = list.slice().sort((a,b) => a.date < b.date ? -1 : a.date > b.date ? 1 : a.createdAt - b.createdAt);
+  const res = new Map();
+  for (const g of ops){
+    const s = st[g.gtype]; s.n++;
+    if (g.side === "buy"){ s.w += g.weight; s.cost += g.total; s.bought += g.weight; }
+    else {
+      const take = Math.min(g.weight, s.w), costOut = s.w ? mulDiv(s.cost, take, s.w) : 0;
+      s.cost -= costOut; s.w -= take; s.sold += g.weight;
+      const gain = g.total - costOut; s.realized += gain;
+      res.set(g.id, {costOut, gain, over: g.weight > take});
+    }
+  }
+  return {st, res};
+}
+const goldValue = (k, w) => { const p = (S.config.goldPrices || {})[k]; return p ? mulDiv(p.price, w, UNIT_LY[p.pUnit]) : null; };
+function assetSeg(){
+  return `<div class="seg" style="margin-top:12px">${[["savings","🏦 Tiết kiệm"],["gold","🟡 Vàng"],["real","🏠 Nhà đất"]].map(([k,l]) => `<button data-at="${k}" aria-pressed="${S.assetTab === k}">${l}</button>`).join("")}</div>`;
+}
+function goldChart(list){
+  const pts = list.slice().sort((a,b) => a.date < b.date ? -1 : a.date > b.date ? 1 : a.createdAt - b.createdAt).map(g => ({d:g.date, v:perChi(g.price, g.pUnit), side:g.side})).filter(p => p.v > 0);
+  if (pts.length < 2) return `<div class="muted small">Cần ít nhất 2 lần mua bán có đơn giá để vẽ biểu đồ.</div>`;
+  const W = 340, H = 150, pl = 44, pb = 22, pt = 10;
+  const t0 = parse(pts[0].d).getTime(), t1 = parse(pts[pts.length-1].d).getTime() || t0 + 1;
+  const vmin = Math.min(...pts.map(p => p.v)), vmax = Math.max(...pts.map(p => p.v)), pad = (vmax - vmin) * 0.1 || vmax * 0.05;
+  const lo = vmin - pad, hi = vmax + pad;
+  const x = d => pl + (W - pl - 8) * (t1 === t0 ? 0.5 : (parse(d).getTime() - t0) / (t1 - t0));
+  const y = v => pt + (H - pt - pb) * (1 - (v - lo) / (hi - lo));
+  let g = "";
+  for (let i = 0; i <= 2; i++){ const v = lo + (hi - lo) * i / 2; g += `<line x1="${pl}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pl-5}" y="${y(v)+4}" text-anchor="end" font-size="10" fill="var(--muted)">${esc(short(Math.round(v)))}</text>`; }
+  g += `<polyline fill="none" stroke="var(--gold)" stroke-width="2" points="${pts.map(p => x(p.d) + "," + y(p.v)).join(" ")}"/>`;
+  for (const p of pts) g += `<circle cx="${x(p.d)}" cy="${y(p.v)}" r="4" fill="${p.side === "buy" ? "var(--inc)" : "var(--exp)"}"><title>${dmy(parse(p.d))}: ${money(p.v)}/chỉ</title></circle>`;
+  g += `<text x="${pl}" y="${H-5}" font-size="10" fill="var(--muted)">${dmy(parse(pts[0].d))}</text><text x="${W}" y="${H-5}" text-anchor="end" font-size="10" fill="var(--muted)">${dmy(parse(pts[pts.length-1].d))}</text>`;
+  return `<div class="legend" style="opacity:1;margin-bottom:6px"><span><i style="background:var(--inc)"></i>Mua</span><span><i style="background:var(--exp)"></i>Bán</span><span class="muted">Đơn giá quy ra mỗi chỉ</span></div><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" role="img" aria-label="Biểu đồ giá vàng theo thời gian">${g}</svg>`;
+}
+function renderGold(){
+  const {st, res} = goldBook(), P = S.config.goldPrices || {};
+  let tw = 0, tc = 0, tv = 0, priced = true, realized = 0;
+  for (const k of GT_KEYS){ const s = st[k]; tw += s.w; tc += s.cost; realized += s.realized; if (s.w){ const v = goldValue(k, s.w); if (v === null) priced = false; else tv += v; } }
+  const pl = tv - tc;
+  const cards = GT_KEYS.filter(k => st[k].n).map(k => {
+    const s = st[k], p = P[k], v = s.w ? goldValue(k, s.w) : null, avg = s.w ? mulDiv(s.cost, 100, s.w) : 0, d = v === null ? null : v - s.cost;
+    return `<div class="card">
+      <div class="row"><h2 style="margin:0">${GICON[k]} ${GTYPES[k]}</h2><b class="num">${esc(fmtWeight(s.w))}</b></div>
+      <div class="muted small" style="margin-bottom:6px">${s.w ? `${chiStr(s.w)}, khoảng ${grams(s.w)}` : "Đã bán hết"}</div>
+      ${s.w ? prow("Giá vốn bình quân", money(avg) + "/chỉ") + prow("Tổng giá vốn", money(s.cost)) : ""}
+      ${p ? prow(`Giá bán ra hiện tại (${dmy(parse(p.date))})`, money(perChi(p.price, p.pUnit)) + "/chỉ") : (s.w ? `<div class="note">Chưa có giá hiện tại. Bấm <b>Cập nhật giá</b> để xem lãi lỗ.</div>` : "")}
+      ${v !== null && s.w ? prow("Giá trị theo giá hiện tại", money(v), true) + prow("Lãi/lỗ tạm tính", `<span style="color:${d >= 0 ? "var(--inc)" : "var(--exp)"}">${signed(d)}${s.cost ? ` (${NF.format(Math.round(d / s.cost * 1000) / 10)}%)` : ""}</span>`, true) : ""}
+      ${s.sold ? prow("Lãi/lỗ đã chốt khi bán", `<span style="color:${s.realized >= 0 ? "var(--inc)" : "var(--exp)"}">${signed(s.realized)}</span>`) : ""}
+    </div>`;
+  }).join("");
+  let hist = S.golds.slice().sort((a,b) => a.date < b.date ? 1 : a.date > b.date ? -1 : b.createdAt - a.createdAt);
+  if (S.goldFilter !== "all") hist = hist.filter(g => g.gtype === S.goldFilter);
+  const rows = hist.map(g => {
+    const r = res.get(g.id);
+    const extra = g.side === "sell" && r ? `<span class="s" style="display:block;color:${r.gain >= 0 ? "var(--inc)" : "var(--exp)"}">${r.gain >= 0 ? "Lãi" : "Lỗ"} ${money(Math.abs(r.gain))}${r.over ? ", bán nhiều hơn số đang giữ" : ""}</span>` : "";
+    return `<button class="tx goldrow" data-gid="${esc(g.id)}"><span class="ic">${GICON[g.gtype]}</span>
+      <span class="mid"><span class="t" style="display:block">${g.side === "buy" ? "Mua" : "Bán"} ${esc(fmtWeight(g.weight))} ${esc(GTYPES[g.gtype].toLowerCase())}${g.brand ? " " + esc(g.brand) : ""}</span>
+      <span class="s" style="display:block">${dmy(parse(g.date))}, ${g.price ? money(perChi(g.price, g.pUnit)) + "/chỉ" : "không ghi đơn giá"}${g.note ? ", " + esc(g.note) : ""}</span>${extra}</span>
+      <span class="amt num" style="color:${g.side === "buy" ? "var(--exp)" : "var(--inc)"}">${g.side === "buy" ? "−" : "+"}${NF.format(g.total)}</span></button>`;
+  }).join("");
+  $("#v-savings").innerHTML = assetSeg() + `
+    <div class="card hero" style="background:var(--gold)">
+      <div class="k">Vàng đang giữ</div>
+      <div class="big num">${esc(fmtWeight(tw))}</div>
+      <div class="rate">${tw ? `${chiStr(tw)}, khoảng ${grams(tw)}` : "Chưa có vàng"}</div>
+      <div class="legend" style="margin-top:10px">
+        <span>Giá vốn ${short(tc)}</span>
+        ${tw && priced ? `<span>Giá trị hiện tại ${short(tv)}</span><span>${pl >= 0 ? "Lãi" : "Lỗ"} tạm tính ${short(Math.abs(pl))}</span>` : tw ? `<span>Cập nhật giá để xem giá trị</span>` : ""}
+        ${realized ? `<span>Đã chốt ${realized >= 0 ? "lãi" : "lỗ"} ${short(Math.abs(realized))}</span>` : ""}
+      </div>
+    </div>
+    <div class="two" style="margin-top:12px"><button class="btn" style="margin:0" data-gold-new="buy">+ Mua vàng</button><button class="btn" style="margin:0;background:var(--surface2);color:var(--ink);border:1px solid var(--line)" data-gold-new="sell">Bán vàng</button></div>
+    <button class="btn" style="margin-top:8px;background:var(--surface2);color:var(--ink);border:1px solid var(--line)" data-gold-price>Cập nhật giá vàng hiện tại</button>
+    ${cards}
+    <div class="card">
+      <h2>Lịch sử mua bán</h2>
+      <div class="chips">${[["all","Tất cả"],...GT_KEYS.map(k => [k, GTYPES[k]])].map(([k,l]) => `<button class="chip" data-gf="${k}" aria-pressed="${S.goldFilter === k}">${l}</button>`).join("")}</div>
+      ${S.goldFilter !== "all" ? `<div style="margin-top:12px">${goldChart(hist)}</div>` : `<div class="note">Chọn một loại vàng để xem biểu đồ giá theo thời gian.</div>`}
+      <div style="margin-top:10px">${rows || `<div class="empty">Chưa có giao dịch vàng. Bấm <b>+ Mua vàng</b> để ghi lần mua đầu tiên.</div>`}</div>
+    </div>`;
+}
+
+/* Sheet: mua / bán vàng */
+const GF = {editing:null, side:"buy", gtype:"nhan", touched:false};
+function openGold(g, side){
+  GF.editing = g || null; GF.side = g ? g.side : (side || "buy"); GF.gtype = g ? g.gtype : "nhan"; GF.touched = !!g;
+  SV.cur = null; SV.editing = null;
+  const mem = S.config.members.slice(); if (g && g.member && !mem.includes(g.member)) mem.push(g.member);
+  const brands = [...new Set(["SJC","PNJ","DOJI","Bảo Tín Minh Châu","Phú Quý", ...S.golds.map(x => x.brand).filter(Boolean)])];
+  showSsheet(`<div class="grab"></div>
+    <div class="row"><h2 style="margin:0" id="gTitle"></h2><button class="iconbtn" data-close aria-label="Đóng">✕</button></div>
+    <div class="seg" id="gSide"><button data-side="buy" style="--tc:var(--exp)">Mua vào</button><button data-side="sell" style="--tc:var(--inc)">Bán ra</button></div>
+    <div class="field"><span>Loại vàng</span><div class="cats" id="gTypes" style="grid-template-columns:repeat(4,1fr)">${GT_KEYS.map(k => `<button class="cat" data-gt="${k}" style="--tc:var(--gold)"><span class="e">${GICON[k]}</span>${GTYPES[k]}</button>`).join("")}</div></div>
+    <div class="field"><span>Thương hiệu, nơi mua bán</span><input type="text" id="gBrand" list="gBrands" maxlength="40" placeholder="SJC, PNJ, DOJI…" value="${esc(g ? g.brand : "")}"><datalist id="gBrands">${brands.map(b => `<option value="${esc(b)}">`).join("")}</datalist></div>
+    <div class="field"><span>Khối lượng</span><div class="two"><input type="text" class="num" id="gW" inputmode="decimal" autocomplete="off" placeholder="1" value="${g ? rateStr(g.weight) : ""}"><select id="gWU">${["luong","chi","phan","ly"].map(u => `<option value="${u}">${UNIT_NAME[u]}</option>`).join("")}</select></div><div class="note" id="gWHint"></div></div>
+    <div class="field"><span>Đơn giá (đồng)</span><div class="two"><input type="text" class="num" id="gP" inputmode="numeric" autocomplete="off" placeholder="0" value="${g && g.price ? NF.format(g.price) : ""}"><select id="gPU"><option value="chi">mỗi chỉ</option><option value="luong">mỗi lượng</option></select></div></div>
+    <div class="field"><span>Thành tiền (sửa được nếu có tiền công, phí)</span><input class="amount num" id="gT" inputmode="numeric" autocomplete="off" placeholder="0" value="${g ? NF.format(g.total) : ""}"></div>
+    <div class="two">
+      <div class="field"><span>Ngày</span><input type="date" id="gD" value="${g ? g.date : ymd(new Date())}"></div>
+      ${mem.length ? `<div class="field"><span>Người mua bán</span><select id="gM"><option value="">Không ghi</option>${mem.map(m => `<option ${g && g.member === m ? "selected" : ""}>${esc(m)}</option>`).join("")}</select></div>` : "<div></div>"}
+    </div>
+    <div class="field"><span>Ghi chú</span><input type="text" id="gN" maxlength="140" value="${esc(g ? g.note : "")}"></div>
+    ${g ? "" : `<label class="check"><input type="checkbox" id="gLog" checked><span id="gLogT"></span></label>`}
+    <div class="preview" id="gPrev"></div>
+    <div class="err" id="gErr" role="alert"></div>
+    <button class="btn" id="gSave"></button>
+    ${g ? `<button class="btn ghost" id="gDel">Xóa giao dịch vàng</button><div class="note">Sửa hoặc xóa ở đây không tự sửa các giao dịch đã ghi trong sổ thu chi.</div>` : ""}`);
+  if (g){ $("#gW").value = rateStr(g.weight); $("#gWU").value = "chi"; $("#gPU").value = g.pUnit; }
+  else { $("#gWU").value = "chi"; $("#gPU").value = "chi"; }
+  drawGoldForm(); goldPreview();
+}
+function drawGoldForm(){
+  document.querySelectorAll("#gSide button").forEach(b => b.setAttribute("aria-pressed", b.dataset.side === GF.side));
+  document.querySelectorAll("#gTypes .cat").forEach(b => b.setAttribute("aria-pressed", b.dataset.gt === GF.gtype));
+  $("#gTitle").textContent = (GF.editing ? "Sửa giao dịch " : "") + (GF.side === "buy" ? "mua vàng" : "bán vàng");
+  $("#gTitle").textContent = $("#gTitle").textContent.charAt(0).toUpperCase() + $("#gTitle").textContent.slice(1);
+  $("#gSave").textContent = GF.editing ? "Lưu thay đổi" : GF.side === "buy" ? "Lưu lần mua" : "Lưu lần bán";
+  if ($("#gLogT")) $("#gLogT").textContent = GF.side === "buy" ? "Ghi vào sổ thu chi: khoản đầu tư vàng" : "Ghi vào sổ thu chi: thu hồi vốn vàng và ghi lãi hoặc lỗ";
+}
+function readGold(){
+  const w = parseWeight($("#gW").value, $("#gWU").value), price = parseAmount($("#gP").value) || 0, total = parseAmount($("#gT").value);
+  return {w, price, pUnit:$("#gPU").value, total};
+}
+function goldPreview(){
+  const r = readGold();
+  $("#gWHint").textContent = Number.isNaN(r.w) ? "Khối lượng chỉ ghi được đến ly (0,1 phân). Ví dụ: 1,5 chỉ." : r.w ? `${fmtWeight(r.w)}, khoảng ${grams(r.w)}` : "";
+  if (!GF.touched && !Number.isNaN(r.w) && r.w && r.price && !Number.isNaN(r.price)){ $("#gT").value = NF.format(mulDiv(r.price, r.w, UNIT_LY[r.pUnit])); }
+  const el = $("#gPrev");
+  const others = S.golds.filter(x => !GF.editing || x.id !== GF.editing.id);
+  const s = goldBook(others).st[GF.gtype], cur = (S.config.goldPrices || {})[GF.gtype];
+  let h = "";
+  if (r.price && !Number.isNaN(r.price)) h += prow("Đơn giá quy ra mỗi chỉ", money(perChi(r.price, r.pUnit)));
+  if (GF.side === "sell"){
+    h += prow(`Đang giữ ${GTYPES[GF.gtype].toLowerCase()}`, esc(fmtWeight(s.w)));
+    if (s.w) h += prow("Giá vốn bình quân", money(mulDiv(s.cost, 100, s.w)) + "/chỉ");
+    if (r.w && !Number.isNaN(r.w) && s.w && r.total && !Number.isNaN(r.total)){
+      const take = Math.min(r.w, s.w), costOut = mulDiv(s.cost, take, s.w), gain = r.total - costOut;
+      h += prow("Giá vốn phần bán", money(costOut)) + prow(gain >= 0 ? "Lãi" : "Lỗ", `<span style="color:${gain >= 0 ? "var(--inc)" : "var(--exp)"}">${signed(gain)}</span>`, true);
+    }
+  } else if (cur && r.price && !Number.isNaN(r.price)){
+    h += prow(`Giá bán ra đã cập nhật (${dmy(parse(cur.date))})`, money(perChi(cur.price, cur.pUnit)) + "/chỉ");
+  }
+  el.innerHTML = h || `<div class="muted small">Nhập khối lượng và đơn giá, thành tiền sẽ tự tính.</div>`;
+  el.classList.toggle("hidden", false);
+}
+async function saveGold(){
+  const r = readGold(), err = m => { $("#gErr").textContent = m; };
+  if (Number.isNaN(r.w) || !r.w) return err("Nhập khối lượng, ví dụ 1 chỉ hoặc 5 phân.");
+  if (Number.isNaN(r.price)) return err("Đơn giá quá lớn.");
+  if (Number.isNaN(r.total) || !r.total) return err("Nhập thành tiền hoặc đơn giá.");
+  if (!isYmd($("#gD").value)) return err("Chọn ngày.");
+  const others = S.golds.filter(x => !GF.editing || x.id !== GF.editing.id);
+  if (GF.side === "sell"){ const held = goldBook(others).st[GF.gtype].w; if (r.w > held) return err(`Chỉ đang giữ ${fmtWeight(held)} ${GTYPES[GF.gtype].toLowerCase()}.`); }
+  const rec = cleanGold(GF.editing ? GF.editing.id : newId(), {side:GF.side, gtype:GF.gtype, brand:$("#gBrand").value.trim(), weight:r.w, price:r.price, pUnit:r.pUnit,
+    total:r.total, date:$("#gD").value, note:$("#gN").value.trim(), member:$("#gM") ? $("#gM").value : "", createdAt: GF.editing ? GF.editing.createdAt : Date.now()});
+  if (!rec) return err("Thông tin chưa hợp lệ.");
+  const log = !GF.editing && $("#gLog") && $("#gLog").checked;
+  $("#gSave").disabled = true;
+  try {
+    await writeGold(rec);
+    if (log){
+      const label = `${fmtWeight(rec.weight)} ${GTYPES[rec.gtype].toLowerCase()}${rec.brand ? " " + rec.brand : ""}`;
+      const base = {cat:pickCat("invest","vang"), date:rec.date, member:rec.member, sav:""};
+      if (rec.side === "buy") await writeTx({...base, id:newId(), type:"invest", amount:rec.total, note:("Mua " + label).slice(0,140), createdAt:Date.now(), wd:false});
+      else {
+        const x = goldBook([...others, rec]).res.get(rec.id), costOut = x ? x.costOut : rec.total, gain = rec.total - costOut;
+        if (costOut > 0) await writeTx({...base, id:newId(), type:"invest", amount:costOut, note:("Bán " + label + ", thu hồi vốn").slice(0,140), createdAt:Date.now(), wd:true});
+        if (gain > 0) await writeTx({...base, id:newId(), type:"income", cat:pickCat("income","laidt"), amount:gain, note:("Lãi bán " + label).slice(0,140), createdAt:Date.now()+1, wd:false});
+        if (gain < 0) await writeTx({...base, id:newId(), type:"expense", cat:pickCat("expense","chikhac"), amount:-gain, note:("Lỗ bán " + label).slice(0,140), createdAt:Date.now()+1, wd:false});
+      }
+    }
+    closeSheet(); toast(GF.editing ? "Đã lưu thay đổi" : "Đã lưu giao dịch vàng");
+  } catch(e){ err(e && e.code === "invalid_argument" ? "Bạn chỉ có quyền xem, không thể ghi." : "Chưa lưu được. Thử lại."); $("#gSave").disabled = false; }
+}
+function openGoldPrice(){
+  SV.cur = null; SV.editing = null; GF.editing = null;
+  const P = S.config.goldPrices || {};
+  showSsheet(`<div class="grab"></div>
+    <div class="row"><h2 style="margin:0">Giá vàng hiện tại</h2><button class="iconbtn" data-close aria-label="Đóng">✕</button></div>
+    <div class="note">Nhập giá tiệm vàng <b>mua vào</b> (giá bạn bán được) để tính giá trị vàng đang giữ. Ứng dụng không tự lấy giá trên mạng, hãy xem bảng giá của tiệm hoặc trang web của SJC, PNJ, DOJI.</div>
+    ${GT_KEYS.map(k => `<div class="field"><span>${GICON[k]} ${GTYPES[k]}${P[k] ? `, cập nhật ${dmy(parse(P[k].date))}` : ""}</span>
+      <div class="two"><input type="text" class="num" id="gp_${k}" inputmode="numeric" autocomplete="off" placeholder="Bỏ trống nếu không có" value="${P[k] ? NF.format(P[k].price) : ""}"><select id="gpu_${k}"><option value="chi">mỗi chỉ</option><option value="luong">mỗi lượng</option></select></div></div>`).join("")}
+    <div class="err" id="gErr" role="alert"></div>
+    <button class="btn" id="gpSave">Lưu giá</button>`);
+  for (const k of GT_KEYS) $("#gpu_" + k).value = P[k] ? P[k].pUnit : (k === "mieng" ? "luong" : "chi");
+}
+async function saveGoldPrice(){
+  const out = {}, today = ymd(new Date()), old = S.config.goldPrices || {};
+  for (const k of GT_KEYS){
+    const v = parseAmount($("#gp_" + k).value), u = $("#gpu_" + k).value;
+    if (Number.isNaN(v) || v > 1e12){ $("#gErr").textContent = "Giá quá lớn."; return; }
+    if (v) out[k] = old[k] && old[k].price === v && old[k].pUnit === u ? old[k] : {price:v, pUnit:u, date:today};
+  }
+  S.config.goldPrices = out; closeSheet(); await saveConfig(); toast("Đã lưu giá vàng");
+}
+$("#ssheet").addEventListener("click", e => {
+  const t = e.target;
+  const sd = t.closest("[data-side]"); if (sd){ GF.side = sd.dataset.side; drawGoldForm(); goldPreview(); return; }
+  const gt = t.closest("[data-gt]"); if (gt){ GF.gtype = gt.dataset.gt; drawGoldForm(); goldPreview(); return; }
+  if (t.id === "gSave") return saveGold();
+  if (t.id === "gpSave") return saveGoldPrice();
+  if (t.id === "gDel"){
+    if (!t.dataset.armed){ t.dataset.armed = "1"; t.textContent = "Bấm lần nữa để xóa"; return; }
+    removeGold(GF.editing.id).then(() => { closeSheet(); toast("Đã xóa giao dịch vàng"); }).catch(() => toast("Chưa xóa được"));
+  }
+});
+$("#ssheet").addEventListener("input", e => {
+  const id = e.target.id;
+  if (id === "gT"){ GF.touched = true; const v = parseAmount(e.target.value); e.target.value = v ? NF.format(v) : ""; goldPreview(); }
+  if (id === "gP" || (id && id.startsWith("gp_"))){ const v = parseAmount(e.target.value); e.target.value = v ? NF.format(v) : ""; }
+  if (id === "gW" || id === "gP"){ if (id === "gP" && !GF.editing) GF.touched = false; goldPreview(); }
+});
+$("#ssheet").addEventListener("change", e => { if (e.target.id === "gWU" || e.target.id === "gPU"){ if (!GF.editing) GF.touched = false; goldPreview(); } });
+
+/* ---------- Real estate (nhà đất) ---------- */
+const RTYPES = {datO:"Đất ở", datNN:"Đất nông nghiệp", nha:"Nhà riêng", canho:"Căn hộ", khac:"Nhà đất khác"};
+const RICON = {datO:"🏡", datNN:"🌾", nha:"🏠", canho:"🏢", khac:"🏬"};
+/* Diện tích lưu bằng số nguyên = m² × 100 (chính xác đến 0,01 m²) */
+const areaStr = a => NF.format(a / 100) + " m²";
+function parseArea(v){
+  const t = String(v).trim().replace(",", ".");
+  if (!/^\d{1,9}(\.\d{1,2})?$/.test(t)) return NaN;
+  const [i, f = ""] = t.split(".");
+  return Number(i + f.padEnd(2, "0"));
+}
+const areaInput = a => String(a / 100).replace(".", ",");
+function cleanReal(id, d){
+  if (!d || !RTYPES[d.rtype] || !isYmd(d.buyDate)) return null;
+  const ok = (v, max) => Number.isSafeInteger(v) && v >= 0 && v <= max;
+  const fees = d.fees || 0;
+  if (!ok(d.area, 1e12) || d.area <= 0 || !ok(d.buyTotal, 1e15) || d.buyTotal <= 0 || !ok(fees, 1e15)) return null;
+  const vals = (Array.isArray(d.vals) ? d.vals : []).filter(v => v && isYmd(v.date) && ok(v.perM2, 1e13) && v.perM2 > 0)
+    .map(v => ({date:v.date, perM2:v.perM2})).sort((a,b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0).slice(-100);
+  const sold = d.sold && isYmd(d.sold.date) && ok(d.sold.total, 1e15) && d.sold.total > 0 ? {date:d.sold.date, total:d.sold.total} : null;
+  return {id, name:String(d.name||"").slice(0,60), rtype:d.rtype, addr:String(d.addr||"").slice(0,120), area:d.area, buyDate:d.buyDate,
+          buyTotal:d.buyTotal, fees, vals, sold, member:String(d.member||"").slice(0,40), note:String(d.note||"").slice(0,140), createdAt:Number(d.createdAt)||0};
+}
+const realName = r => r.name || RTYPES[r.rtype];
+const buyPerM2 = r => mulDiv(r.buyTotal, 100, r.area);
+function realState(r){
+  const last = r.vals[r.vals.length - 1] || null, cost = r.buyTotal + r.fees;
+  const value = last ? mulDiv(last.perM2, r.area, 100) : null;
+  return {last, cost, value, gain: value === null ? null : value - cost};
+}
+const pct = (a, b) => b ? ` (${a >= 0 ? "+" : "−"}${NF.format(Math.abs(Math.round(a / b * 1000) / 10))}%)` : "";
+const gainSpan = (g, base) => `<span style="color:${g >= 0 ? "var(--inc)" : "var(--exp)"}">${signed(g)}${pct(g, base)}</span>`;
+function lineChart(pts, unit){
+  if (pts.length < 2) return `<div class="muted small">Thêm giá hiện tại ở các thời điểm khác nhau để xem biểu đồ.</div>`;
+  const W = 340, H = 150, pl = 44, pb = 22, pt = 10;
+  const t0 = parse(pts[0].d).getTime(), t1 = parse(pts[pts.length-1].d).getTime();
+  const vmin = Math.min(...pts.map(p => p.v)), vmax = Math.max(...pts.map(p => p.v)), pad = (vmax - vmin) * 0.1 || vmax * 0.05;
+  const lo = vmin - pad, hi = vmax + pad;
+  const x = d => pl + (W - pl - 8) * (t1 === t0 ? 0.5 : (parse(d).getTime() - t0) / (t1 - t0));
+  const y = v => pt + (H - pt - pb) * (1 - (v - lo) / (hi - lo));
+  const col = {buy:"var(--inc)", val:"var(--inv)", sell:"var(--exp)"};
+  let g = "";
+  for (let i = 0; i <= 2; i++){ const v = lo + (hi - lo) * i / 2; g += `<line x1="${pl}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pl-5}" y="${y(v)+4}" text-anchor="end" font-size="10" fill="var(--muted)">${esc(short(Math.round(v)))}</text>`; }
+  g += `<polyline fill="none" stroke="var(--inv)" stroke-width="2" points="${pts.map(p => x(p.d) + "," + y(p.v)).join(" ")}"/>`;
+  for (const p of pts) g += `<circle cx="${x(p.d)}" cy="${y(p.v)}" r="4" fill="${col[p.k]}"><title>${dmy(parse(p.d))}: ${money(p.v)}/${unit}</title></circle>`;
+  g += `<text x="${pl}" y="${H-5}" font-size="10" fill="var(--muted)">${dmy(parse(pts[0].d))}</text><text x="${W}" y="${H-5}" text-anchor="end" font-size="10" fill="var(--muted)">${dmy(parse(pts[pts.length-1].d))}</text>`;
+  return `<div class="legend" style="opacity:1;margin-bottom:6px"><span><i style="background:var(--inc)"></i>Giá mua</span><span><i style="background:var(--inv)"></i>Giá hiện tại</span>${pts.some(p => p.k === "sell") ? `<span><i style="background:var(--exp)"></i>Giá bán</span>` : ""}<span class="muted">mỗi ${unit}</span></div><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" role="img" aria-label="Biểu đồ giá theo thời gian">${g}</svg>`;
+}
+function renderReal(){
+  const own = S.reals.filter(r => !r.sold), sold = S.reals.filter(r => r.sold);
+  let cost = 0, value = 0, unpriced = 0, area = 0;
+  for (const r of own){ const x = realState(r); cost += x.cost; area += r.area; if (x.value === null){ unpriced++; value += x.cost; } else value += x.value; }
+  const realized = sold.reduce((a, r) => a + r.sold.total - (r.buyTotal + r.fees), 0);
+  own.sort((a,b) => a.buyDate < b.buyDate ? -1 : 1); sold.sort((a,b) => a.sold.date < b.sold.date ? 1 : -1);
+  $("#v-savings").innerHTML = assetSeg() + `
+    <div class="card hero" style="background:var(--inv)">
+      <div class="k">Nhà đất đang sở hữu (${own.length})</div>
+      <div class="big num">${money(value)}</div>
+      <div class="rate">Giá trị theo giá hiện tại${unpriced ? `, ${unpriced} tài sản chưa có giá hiện tại nên tạm tính theo giá mua` : ""}</div>
+      <div class="legend" style="margin-top:10px">
+        <span>Giá vốn ${short(cost)}</span>
+        <span>${value - cost >= 0 ? "Lãi" : "Lỗ"} tạm tính ${short(Math.abs(value - cost))}</span>
+        ${area ? `<span>Tổng diện tích ${areaStr(area)}</span>` : ""}
+        ${sold.length ? `<span>Đã chốt ${realized >= 0 ? "lãi" : "lỗ"} ${short(Math.abs(realized))}</span>` : ""}
+      </div>
+    </div>
+    <button class="btn" data-re-new>+ Thêm nhà, đất</button>
+    ${own.length ? own.map(realCard).join("") : `<div class="empty">Chưa có nhà đất nào. Bấm <b>+ Thêm nhà, đất</b> để ghi diện tích, giá mua và giá hiện tại trên m².</div>`}
+    ${sold.length ? `<h2 style="margin:22px 4px 0">Đã bán</h2>${sold.map(realCard).join("")}` : ""}`;
+}
+function realCard(r){
+  const x = realState(r);
+  let body;
+  if (r.sold){
+    const g = r.sold.total - x.cost;
+    body = prow(`Bán ${dmy(parse(r.sold.date))}`, money(r.sold.total)) + prow("Giá bán mỗi m²", money(mulDiv(r.sold.total, 100, r.area))) + prow(g >= 0 ? "Lãi" : "Lỗ", gainSpan(g, x.cost), true);
+  } else {
+    body = prow(`Mua ${dmy(parse(r.buyDate))}`, money(buyPerM2(r)) + "/m²")
+      + (x.last ? prow(`Hiện tại (${dmy(parse(x.last.date))})`, money(x.last.perM2) + "/m²") + prow("Giá trị", money(x.value), true) + prow("Lãi/lỗ tạm tính", gainSpan(x.gain, x.cost), true)
+                : prow("Giá vốn", money(x.cost), true) + `<div class="note">Chưa có giá hiện tại. Bấm để cập nhật.</div>`);
+  }
+  return `<button class="savc recard" data-rid="${esc(r.id)}">
+    <div class="top"><div><div class="nm">${RICON[r.rtype]} ${esc(realName(r))}</div><div class="bk">${esc([r.name ? RTYPES[r.rtype] : "", areaStr(r.area), r.addr].filter(Boolean).join(", "))}</div></div>${r.sold ? `<span class="badge done">Đã bán</span>` : ""}</div>
+    <div style="margin-top:6px">${body}</div></button>`;
+}
+
+/* Sheet: thêm / sửa nhà đất */
+const RF = {editing:null, cur:null, rtype:"datO", last:"per"};
+function openReal(r){
+  RF.editing = r || null; RF.cur = null; RF.rtype = r ? r.rtype : "datO"; RF.last = "tot";
+  SV.cur = null; SV.editing = null; GF.editing = null;
+  const mem = S.config.members.slice(); if (r && r.member && !mem.includes(r.member)) mem.push(r.member);
+  showSsheet(`<div class="grab"></div>
+    <div class="row"><h2 style="margin:0">${r ? "Sửa thông tin nhà đất" : "Thêm nhà, đất"}</h2><button class="iconbtn" data-close aria-label="Đóng">✕</button></div>
+    <div class="field"><span>Loại</span><div class="cats" id="rTypes" style="grid-template-columns:repeat(5,1fr)">${Object.keys(RTYPES).map(k => `<button class="cat" data-rty="${k}" style="--tc:var(--inv)"><span class="e">${RICON[k]}</span>${RTYPES[k]}</button>`).join("")}</div></div>
+    <div class="field"><span>Tên gọi</span><input type="text" id="rName" maxlength="60" placeholder="Ví dụ: Nhà Thủ Đức, Đất quê" value="${esc(r ? r.name : "")}"></div>
+    <div class="field"><span>Địa chỉ, vị trí</span><input type="text" id="rAddr" maxlength="120" value="${esc(r ? r.addr : "")}"></div>
+    <div class="two">
+      <div class="field"><span>Diện tích (m²)</span><input type="text" class="num" id="rArea" inputmode="decimal" autocomplete="off" placeholder="100" value="${r ? areaInput(r.area) : ""}"></div>
+      <div class="field"><span>Ngày mua</span><input type="date" id="rDate" value="${r ? r.buyDate : ymd(new Date())}"></div>
+    </div>
+    <div class="note">Nhà riêng: ghi diện tích đất nếu giá thị trường tính theo m² đất. Căn hộ: ghi diện tích sàn.</div>
+    <div class="two">
+      <div class="field"><span>Giá mua mỗi m²</span><input type="text" class="num" id="rPer" inputmode="numeric" autocomplete="off" placeholder="0" value="${r ? NF.format(buyPerM2(r)) : ""}"></div>
+      <div class="field"><span>Tổng giá mua</span><input type="text" class="num" id="rTot" inputmode="numeric" autocomplete="off" placeholder="0" value="${r ? NF.format(r.buyTotal) : ""}"></div>
+    </div>
+    <div class="field"><span>Chi phí khác khi mua (thuế, phí, công chứng, môi giới, sửa chữa)</span><input type="text" class="num" id="rFees" inputmode="numeric" autocomplete="off" placeholder="0" value="${r && r.fees ? NF.format(r.fees) : ""}"></div>
+    ${r ? "" : `<div class="field"><span>Giá hiện tại mỗi m² (nếu biết)</span><input type="text" class="num" id="rNow" inputmode="numeric" autocomplete="off" placeholder="Bỏ trống nếu chưa biết"></div>`}
+    <div class="two">
+      ${mem.length ? `<div class="field"><span>Người đứng tên</span><select id="rMem"><option value="">Không ghi</option>${mem.map(m => `<option ${r && r.member === m ? "selected" : ""}>${esc(m)}</option>`).join("")}</select></div>` : ""}
+      <div class="field" ${mem.length ? "" : `style="grid-column:1/-1"`}><span>Ghi chú</span><input type="text" id="rNote" maxlength="140" value="${esc(r ? r.note : "")}"></div>
+    </div>
+    ${r ? "" : `<label class="check"><input type="checkbox" id="rLog" checked><span>Ghi vào sổ thu chi: khoản đầu tư bất động sản (giá mua và chi phí)</span></label>`}
+    <div class="preview" id="rPrev"></div>
+    <div class="err" id="rErr" role="alert"></div>
+    <button class="btn" id="rSave">${r ? "Lưu thay đổi" : "Lưu"}</button>`);
+  drawRealForm(); realPreview();
+}
+function drawRealForm(){ document.querySelectorAll("#rTypes .cat").forEach(b => b.setAttribute("aria-pressed", b.dataset.rty === RF.rtype)); }
+function linkPrice(){
+  const area = parseArea($("#rArea").value);
+  if (Number.isNaN(area) || !area) return;
+  if (RF.last === "per"){ const p = parseAmount($("#rPer").value); if (p && !Number.isNaN(p)) $("#rTot").value = NF.format(mulDiv(p, area, 100)); }
+  else { const t = parseAmount($("#rTot").value); if (t && !Number.isNaN(t)) $("#rPer").value = NF.format(mulDiv(t, 100, area)); }
+}
+function readReal(){
+  const area = parseArea($("#rArea").value), tot = parseAmount($("#rTot").value), fees = parseAmount($("#rFees").value) || 0, now = $("#rNow") ? parseAmount($("#rNow").value) : 0;
+  return {area, tot, fees, now};
+}
+function realPreview(){
+  const r = readReal(), el = $("#rPrev");
+  if (Number.isNaN(r.area) || !r.area || Number.isNaN(r.tot) || !r.tot || Number.isNaN(r.fees)){ el.innerHTML = `<div class="muted small">Nhập diện tích và giá mua (mỗi m² hoặc tổng) để xem giá vốn.</div>`; return; }
+  const cost = r.tot + r.fees;
+  let h = prow("Giá vốn (giá mua + chi phí)", money(cost), true) + prow("Giá vốn mỗi m²", money(mulDiv(cost, 100, r.area)));
+  if (r.now && !Number.isNaN(r.now)){ const v = mulDiv(r.now, r.area, 100); h += prow("Giá trị hiện tại", money(v), true) + prow("Lãi/lỗ tạm tính", gainSpan(v - cost, cost), true); }
+  el.innerHTML = h;
+}
+async function saveReal(){
+  const r = readReal(), err = m => { $("#rErr").textContent = m; };
+  if (Number.isNaN(r.area) || !r.area) return err("Nhập diện tích, ví dụ 85,5");
+  if (Number.isNaN(r.tot) || !r.tot) return err("Nhập giá mua mỗi m² hoặc tổng giá mua.");
+  if (Number.isNaN(r.fees) || Number.isNaN(r.now)) return err("Số tiền quá lớn.");
+  if (!isYmd($("#rDate").value)) return err("Chọn ngày mua.");
+  const ed = RF.editing;
+  const vals = ed ? ed.vals : (r.now ? [{date:ymd(new Date()), perM2:r.now}] : []);
+  const obj = cleanReal(ed ? ed.id : newId(), {name:$("#rName").value.trim(), rtype:RF.rtype, addr:$("#rAddr").value.trim(), area:r.area, buyDate:$("#rDate").value,
+    buyTotal:r.tot, fees:r.fees, vals, sold: ed ? ed.sold : null, member:$("#rMem") ? $("#rMem").value : "", note:$("#rNote").value.trim(), createdAt: ed ? ed.createdAt : Date.now()});
+  if (!obj) return err("Thông tin chưa hợp lệ.");
+  const log = !ed && $("#rLog") && $("#rLog").checked;
+  $("#rSave").disabled = true;
+  try {
+    await writeReal(obj);
+    if (log) await writeTx({id:newId(), type:"invest", amount:obj.buyTotal + obj.fees, cat:pickCat("invest","bds"), date:obj.buyDate, note:("Mua " + realName(obj)).slice(0,140), member:obj.member, createdAt:Date.now(), wd:false, sav:""});
+    closeSheet(); toast(ed ? "Đã lưu thay đổi" : "Đã thêm nhà đất");
+  } catch(e){ err(e && e.code === "invalid_argument" ? "Bạn chỉ có quyền xem, không thể ghi." : "Chưa lưu được. Thử lại."); $("#rSave").disabled = false; }
+}
+
+/* Sheet: chi tiết, định giá, bán */
+function openRealDetail(r){
+  RF.cur = r; RF.editing = null; SV.cur = null; SV.editing = null; GF.editing = null;
+  const x = realState(r), today = ymd(new Date());
+  const pts = [{d:r.buyDate, v:buyPerM2(r), k:"buy"}, ...r.vals.map(v => ({d:v.date, v:v.perM2, k:"val"}))];
+  if (r.sold) pts.push({d:r.sold.date, v:mulDiv(r.sold.total, 100, r.area), k:"sell"});
+  pts.sort((a,b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0);
+  const valRows = r.vals.slice().reverse().map(v => {
+    const val = mulDiv(v.perM2, r.area, 100);
+    return `<tr><td>${dmy(parse(v.date))}</td><td class="num">${NF.format(v.perM2)}</td><td class="num">${NF.format(val)}</td><td class="num">${gainSpan(val - x.cost, x.cost).replace(/ ₫/, "")}</td><td><button class="del" style="width:34px;height:34px" data-vdel="${esc(v.date)}" aria-label="Xóa giá ngày ${dmy(parse(v.date))}">✕</button></td></tr>`;
+  }).join("");
+  const sell = r.sold
+    ? `<div class="preview">${prow("Ngày bán", dmy(parse(r.sold.date)))}${prow("Giá bán", money(r.sold.total), true)}${prow("Giá bán mỗi m²", money(mulDiv(r.sold.total, 100, r.area)))}${prow(r.sold.total - x.cost >= 0 ? "Lãi đã chốt" : "Lỗ đã chốt", gainSpan(r.sold.total - x.cost, x.cost), true)}</div>
+       <button class="btn ghost" id="rUnsell" style="color:var(--ink)">Hủy ghi nhận đã bán</button>`
+    : `<h2 style="margin-top:18px">Ghi nhận đã bán</h2>
+       <div class="two"><div class="field"><span>Ngày bán</span><input type="date" id="rSD" value="${today}"></div>
+       <div class="field"><span>Tổng giá bán (sau thuế, phí)</span><input type="text" class="num" id="rST" inputmode="numeric" autocomplete="off" placeholder="0"></div></div>
+       <div class="preview" id="rSPrev"><div class="muted small">Nhập giá bán để xem lãi lỗ.</div></div>
+       <label class="check"><input type="checkbox" id="rSLog" checked><span>Ghi vào sổ thu chi: thu hồi vốn và ghi lãi hoặc lỗ</span></label>
+       <button class="btn" id="rSell" style="background:var(--surface2);color:var(--ink);border:1px solid var(--line)">Xác nhận đã bán</button>`;
+  showSsheet(`<div class="grab"></div>
+    <div class="row"><h2 style="margin:0">${RICON[r.rtype]} ${esc(realName(r))}</h2><button class="iconbtn" data-close aria-label="Đóng">✕</button></div>
+    ${r.addr ? `<div class="muted small">${esc(r.addr)}</div>` : ""}
+    <div class="preview">
+      ${prow("Loại", RTYPES[r.rtype])}${prow("Diện tích", areaStr(r.area))}${prow("Ngày mua", dmy(parse(r.buyDate)))}
+      ${prow("Giá mua mỗi m²", money(buyPerM2(r)))}${prow("Tổng giá mua", money(r.buyTotal))}
+      ${r.fees ? prow("Chi phí khác", money(r.fees)) : ""}${prow("Giá vốn", money(x.cost), true)}
+      ${!r.sold && x.last ? prow(`Giá trị hiện tại (${dmy(parse(x.last.date))})`, money(x.value), true) + prow("Lãi/lỗ tạm tính", gainSpan(x.gain, x.cost), true) : ""}
+      ${r.member ? prow("Người đứng tên", esc(r.member)) : ""}${r.note ? prow("Ghi chú", esc(r.note)) : ""}
+    </div>
+    <div style="margin-top:14px">${lineChart(pts, "m²")}</div>
+    ${r.sold ? "" : `<h2 style="margin-top:18px">Cập nhật giá hiện tại</h2>
+      <div class="two"><div class="field"><span>Ngày</span><input type="date" id="rVD" value="${today}"></div>
+      <div class="field"><span>Giá mỗi m²</span><input type="text" class="num" id="rVP" inputmode="numeric" autocomplete="off" placeholder="0"></div></div>
+      <div class="note" id="rVHint">Giá trị = giá mỗi m² × ${areaStr(r.area)}</div>
+      <button class="btn" id="rValAdd">Lưu giá</button>`}
+    ${valRows ? `<h2 style="margin-top:18px">Lịch sử giá hiện tại</h2><div class="tablewrap"><table><thead><tr><th>Ngày</th><th>Giá/m²</th><th>Giá trị</th><th>So với vốn</th><th></th></tr></thead><tbody>${valRows}</tbody></table></div>` : ""}
+    ${sell}
+    <div class="err" id="rErr" role="alert"></div>
+    <button class="btn" id="rEdit" style="background:var(--surface2);color:var(--ink);border:1px solid var(--line)">Sửa thông tin</button>
+    <button class="btn ghost" id="rDel">Xóa nhà đất này</button>`);
+}
+const curReal = () => S.reals.find(v => v.id === RF.cur.id) || RF.cur;
+async function realUpdate(obj, msg){
+  try { await writeReal(obj); toast(msg); openRealDetail(obj); }
+  catch(e){ $("#rErr").textContent = e && e.code === "invalid_argument" ? "Bạn chỉ có quyền xem, không thể ghi." : "Chưa lưu được. Thử lại."; }
+}
+$("#ssheet").addEventListener("click", async e => {
+  const t = e.target;
+  const ty = t.closest("[data-rty]"); if (ty){ RF.rtype = ty.dataset.rty; drawRealForm(); return; }
+  if (t.id === "rSave") return saveReal();
+  if (t.id === "rEdit") return openReal(curReal());
+  if (t.id === "rValAdd"){
+    const r = curReal(), d = $("#rVD").value, p = parseAmount($("#rVP").value);
+    if (!isYmd(d)){ $("#rErr").textContent = "Chọn ngày."; return; }
+    if (!p || Number.isNaN(p)){ $("#rErr").textContent = "Nhập giá mỗi m²."; return; }
+    const vals = r.vals.filter(v => v.date !== d).concat([{date:d, perM2:p}]);
+    return realUpdate(cleanReal(r.id, {...r, vals}), "Đã lưu giá");
+  }
+  const vd = t.closest("[data-vdel]"); if (vd){ const r = curReal(); return realUpdate(cleanReal(r.id, {...r, vals:r.vals.filter(v => v.date !== vd.dataset.vdel)}), "Đã xóa giá"); }
+  if (t.id === "rSell"){
+    const r = curReal(), d = $("#rSD").value, tot = parseAmount($("#rST").value);
+    if (!isYmd(d) || d < r.buyDate){ $("#rErr").textContent = "Ngày bán chưa hợp lệ."; return; }
+    if (!tot || Number.isNaN(tot)){ $("#rErr").textContent = "Nhập tổng giá bán."; return; }
+    const obj = cleanReal(r.id, {...r, sold:{date:d, total:tot}}), cost = r.buyTotal + r.fees, gain = tot - cost;
+    try {
+      await writeReal(obj);
+      if ($("#rSLog").checked){
+        const base = {date:d, member:r.member, sav:"", wd:false}, nm = realName(r);
+        await writeTx({...base, id:newId(), type:"invest", cat:pickCat("invest","bds"), amount:cost, note:("Bán " + nm + ", thu hồi vốn").slice(0,140), createdAt:Date.now(), wd:true});
+        if (gain > 0) await writeTx({...base, id:newId(), type:"income", cat:pickCat("income","laidt"), amount:gain, note:("Lãi bán " + nm).slice(0,140), createdAt:Date.now()+1});
+        if (gain < 0) await writeTx({...base, id:newId(), type:"expense", cat:pickCat("expense","chikhac"), amount:-gain, note:("Lỗ bán " + nm).slice(0,140), createdAt:Date.now()+1});
+      }
+      toast("Đã ghi nhận đã bán"); openRealDetail(obj);
+    } catch(err){ $("#rErr").textContent = "Chưa lưu được. Thử lại."; }
+    return;
+  }
+  if (t.id === "rUnsell"){ const r = curReal(); return realUpdate(cleanReal(r.id, {...r, sold:null}), "Đã hủy. Giao dịch trong sổ thu chi vẫn giữ nguyên."); }
+  if (t.id === "rDel"){
+    if (!t.dataset.armed){ t.dataset.armed = "1"; t.textContent = "Bấm lần nữa để xóa"; return; }
+    try { await removeReal(RF.cur.id); closeSheet(); toast("Đã xóa. Giao dịch trong sổ thu chi vẫn giữ nguyên."); } catch(err){ toast("Chưa xóa được"); }
+  }
+});
+$("#ssheet").addEventListener("input", e => {
+  const id = e.target.id;
+  if (["rPer","rTot","rFees","rNow","rVP","rST"].includes(id)){ const v = parseAmount(e.target.value); e.target.value = v ? NF.format(v) : ""; }
+  if (id === "rPer") RF.last = "per";
+  if (id === "rTot") RF.last = "tot";
+  if (["rArea","rPer","rTot"].includes(id)) linkPrice();
+  if ($("#rPrev")) realPreview();
+  if (id === "rVP" && RF.cur){ const p = parseAmount(e.target.value); $("#rVHint").textContent = p && !Number.isNaN(p) ? `Giá trị: ${money(mulDiv(p, RF.cur.area, 100))}` : `Giá trị = giá mỗi m² × ${areaStr(RF.cur.area)}`; }
+  if (id === "rST" && RF.cur){
+    const r = curReal(), tot = parseAmount(e.target.value), cost = r.buyTotal + r.fees;
+    $("#rSPrev").innerHTML = tot && !Number.isNaN(tot) ? prow("Giá bán mỗi m²", money(mulDiv(tot, 100, r.area))) + prow(tot - cost >= 0 ? "Lãi" : "Lỗ", gainSpan(tot - cost, cost), true) : `<div class="muted small">Nhập giá bán để xem lãi lỗ.</div>`;
+  }
+});
+
+/* ---------- Sheet (add / edit) ---------- */
+const F = {type:"expense", cat:"", editing:null};
+function parseAmount(str){ const d = String(str).replace(/\D/g, "").replace(/^0+/, ""); if (!d) return 0; if (d.length > 15) return NaN; return Number(d); }
+function fmtAmountInput(){ const el = $("#fAmount"), v = parseAmount(el.value); el.value = v ? NF.format(v) : ""; }
+function drawCats(){
+  const cats = S.config.categories[F.type];
+  if (!cats.some(c => c.id === F.cat)) F.cat = cats[0] ? cats[0].id : "";
+  $("#fCats").innerHTML = cats.map(c => `<button class="cat" data-c="${esc(c.id)}" aria-pressed="${c.id===F.cat}" style="--tc:${TYPES[F.type].color}"><span class="e">${esc(c.icon)}</span>${esc(c.name)}</button>`).join("");
+  document.querySelectorAll("#fType button").forEach(b => b.setAttribute("aria-pressed", b.dataset.t === F.type));
+  const dirOn = F.type === "saving" || F.type === "invest", db2 = document.querySelectorAll("#fDir button");
+  $("#fDir").classList.toggle("hidden", !dirOn);
+  db2[0].textContent = F.type === "invest" ? "Mua, góp vốn" : "Gửi vào";
+  db2[1].textContent = F.type === "invest" ? "Bán, rút vốn" : "Rút ra";
+  db2.forEach(b => b.setAttribute("aria-pressed", (b.dataset.d === "out") === !!F.wd));
+  $("#fGoldHint").classList.toggle("hidden", !(F.type === "invest" && F.cat === "vang" && !F.editing));
+}
+function openSheet(tx){
+  F.editing = tx || null;
+  F.type = tx ? tx.type : (S.view === "ledger" && S.ledgerType !== "all" ? S.ledgerType : "expense");
+  F.cat = tx ? tx.cat : ""; F.wd = tx ? !!tx.wd : false;
+  $("#sheetTitle").textContent = tx ? "Sửa giao dịch" : "Thêm giao dịch";
+  $("#fAmount").value = tx ? NF.format(tx.amount) : "";
+  const r = curRange(), today = ymd(new Date());
+  $("#fDate").value = tx ? tx.date : (today >= r.from && today <= r.to ? today : r.to);
+  $("#fNote").value = tx ? tx.note : "";
+  const mem = S.config.members;
+  $("#fMemberWrap").classList.toggle("hidden", !mem.length && !(tx && tx.member));
+  const opts = mem.slice(); if (tx && tx.member && !opts.includes(tx.member)) opts.push(tx.member);
+  $("#fMember").innerHTML = `<option value="">Không ghi</option>` + opts.map(m => `<option ${tx && tx.member===m?"selected":""}>${esc(m)}</option>`).join("");
+  $("#fErr").textContent = "";
+  $("#fSave").textContent = tx ? "Lưu thay đổi" : "Lưu giao dịch";
+  $("#fDel").classList.toggle("hidden", !tx);
+  $("#fDel").textContent = "Xóa giao dịch"; $("#fDel").dataset.armed = "";
+  drawCats();
+  $("#scrim").classList.add("on"); $("#sheet").classList.add("on");
+  if (!tx) setTimeout(() => $("#fAmount").focus(), 230);
+}
+function closeSheet(){ $("#scrim").classList.remove("on"); $("#sheet").classList.remove("on"); $("#ssheet").classList.remove("on"); }
+async function submit(){
+  const amount = parseAmount($("#fAmount").value), date = $("#fDate").value;
+  const err = m => { $("#fErr").textContent = m; };
+  if (Number.isNaN(amount) || amount > Number.MAX_SAFE_INTEGER) return err("Số tiền quá lớn.");
+  if (!amount) return err("Nhập số tiền lớn hơn 0.");
+  if (!F.cat) return err("Chọn một hạng mục.");
+  if (!isYmd(date)) return err("Chọn ngày giao dịch.");
+  const tx = {id: F.editing ? F.editing.id : newId(), type:F.type, amount, cat:F.cat, date,
+              note:$("#fNote").value.trim().slice(0,140), member:$("#fMember").value, createdAt: F.editing ? F.editing.createdAt : Date.now(), wd:(F.type === "saving" || F.type === "invest") && !!F.wd, sav: F.editing ? (F.editing.sav || "") : ""};
+  $("#fSave").disabled = true;
+  try { await writeTx(tx); closeSheet(); toast(F.editing ? "Đã lưu thay đổi" : "Đã lưu giao dịch"); }
+  catch(e){ err(e && e.code === "invalid_argument" ? "Bạn chỉ có quyền xem, không thể ghi." : "Chưa lưu được. Kiểm tra kết nối rồi thử lại."); }
+  finally { $("#fSave").disabled = false; }
+}
+
+/* ---------- CSV ---------- */
+/* ---------- Backup / restore (file nằm ngoài tài khoản Claude) ---------- */
+const BK_APP = "so-tai-chinh-gia-dinh", LAST_BK = "so-tai-chinh-last-backup";
+const BK = {file:null, busy:false, msg:null};
+const goodId = id => typeof id === "string" && /^[A-Za-z0-9_-]{1,100}$/.test(id);
+function lastBackup(){ try { return localStorage.getItem(LAST_BK) || ""; } catch(e){ return ""; } }
+function bkMsg(text, ok){ BK.msg = text ? {text, ok:!!ok} : null; render(); }
+async function saveFile(filename, data, mime){
+  let dl = null;
+  try { if (window.claude && window.claude.use) dl = await window.claude.use("downloads"); } catch(e){}
+  if (dl){
+    try { const r = await dl.save({filename, data}); return r && r.status !== "cancelled" ? true : r ? true : false; }
+    catch(e){ if (e && e.code === "host_unavailable") throw new Error("App Claude trên máy này chưa lưu được file. Hãy mở trang bằng trình duyệt hoặc máy tính."); if (e && e.code === "declined") return false; throw new Error("Chưa tải được file."); }
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([data], {type:mime}));
+  a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  return true;
+}
+async function makeBackup(pw){
+  const data = {txs:S.txs, savs:S.savs, golds:S.golds, reals:S.reals, config:S.config};
+  const meta = {app:BK_APP, v:1, exportedAt:new Date().toISOString(), counts:{txs:data.txs.length, savs:data.savs.length, golds:data.golds.length, reals:data.reals.length}};
+  if (!pw) return JSON.stringify({...meta, data});
+  const salt = crypto.getRandomValues(new Uint8Array(16)), key = await deriveKek(pw, salt, ITER);
+  return JSON.stringify({...meta, enc:{salt:b64(salt), iter:ITER, data: await encObj(key, data)}});
+}
+async function doBackup(){
+  if (BK.busy) return;
+  const pw = ($("#bkPw") || {}).value || "", pw2 = ($("#bkPw2c") || {}).value || "";
+  if (pw && pw.length < 6) return bkMsg("Mật khẩu file cần ít nhất 6 ký tự, hoặc để trống.");
+  if (pw !== pw2) return bkMsg("Hai lần nhập mật khẩu file không khớp.");
+  BK.busy = true; bkMsg("Đang tạo file sao lưu…", true);
+  try {
+    const text = await makeBackup(pw);
+    const ok = await saveFile(`so-tai-chinh-sao-luu-${ymd(new Date())}.json`, text, "application/json");
+    BK.busy = false;
+    if (ok){ try { localStorage.setItem(LAST_BK, ymd(new Date())); } catch(e){} bkMsg(pw ? "Đã tải file sao lưu (có mật khẩu). Hãy cất file vào Google Drive, email hoặc máy tính." : "Đã tải file sao lưu. Hãy cất file vào Google Drive, email hoặc máy tính.", true); }
+    else bkMsg("Bạn đã hủy tải file.");
+  } catch(e){ BK.busy = false; bkMsg(e && e.message ? e.message : "Chưa tạo được file sao lưu."); }
+}
+async function readBackup(text, pw){
+  let j; try { j = JSON.parse(text); } catch(e){ throw new Error("File không đúng định dạng sao lưu."); }
+  if (!j || j.app !== BK_APP) throw new Error("Đây không phải file sao lưu của Sổ tài chính gia đình.");
+  let data = j.data;
+  if (j.enc){
+    if (!CRYPTO_OK) throw new Error("Trình duyệt này không giải mã được file.");
+    if (!pw) throw new Error("File có mật khẩu. Nhập mật khẩu file rồi bấm lại.");
+    const iter = Number(j.enc.iter);
+    if (!Number.isInteger(iter) || iter < 100000 || iter > 5000000) throw new Error("File sao lưu bị hỏng.");
+    try { data = await decObj(await deriveKek(pw, unb64(String(j.enc.salt)), iter), String(j.enc.data)); }
+    catch(e){ throw new Error("Mật khẩu file sao lưu không đúng."); }
+  }
+  if (!data || typeof data !== "object") throw new Error("File sao lưu bị hỏng.");
+  const pick = (arr, clean) => (Array.isArray(arr) ? arr : []).map(x => x && clean(goodId(x.id) ? x.id : newId(), x)).filter(Boolean);
+  return {txs:pick(data.txs, cleanTx), savs:pick(data.savs, cleanSav), golds:pick(data.golds, cleanGold), reals:pick(data.reals, cleanReal),
+          config:cleanConfig(data.config), exportedAt:String(j.exportedAt || "")};
+}
+function mergeConfig(a, b){
+  const out = JSON.parse(JSON.stringify(a));
+  for (const t of TYPE_KEYS) for (const c of b.categories[t]) if (!out.categories[t].some(x => x.id === c.id)) out.categories[t].push(c);
+  for (const m of b.members) if (!out.members.includes(m)) out.members.push(m);
+  for (const k in b.goldPrices) if (!out.goldPrices[k] || out.goldPrices[k].date < b.goldPrices[k].date) out.goldPrices[k] = b.goldPrices[k];
+  return out;
+}
+const COLLS = [["txs","tx"],["savs","sav"],["golds","gold"],["reals","real"]];
+async function doRestore(){
+  if (BK.busy) return;
+  if (!BK.file) return bkMsg("Chọn file sao lưu (.json) trước.");
+  const mode = ($("#bkMode") || {}).value || "merge", btn = $("#bkRestore");
+  if (mode === "replace" && !btn.dataset.armed){ btn.dataset.armed = "1"; btn.textContent = "Bấm lần nữa: xóa dữ liệu hiện tại và thay bằng file"; return; }
+  BK.busy = true; bkMsg("Đang đọc file…", true);
+  try {
+    const d = await readBackup(await BK.file.text(), ($("#bkPwR") || {}).value || "");
+    const total = COLLS.reduce((a,[k]) => a + d[k].length, 0);
+    if (S.store === "db"){
+      let n = 0;
+      for (const [k, coll] of COLLS){
+        const have = new Set(S[k].map(x => x.id));
+        const list = mode === "replace" ? d[k] : d[k].filter(x => !have.has(x.id));
+        for (const item of list){
+          if (n % 10 === 0) bkMsg(`Đang khôi phục ${n}/${total}…`, true);
+          const body = await txBody(item);
+          await withRetry(() => db.collection(coll).doc(item.id).set(body)); n++;
+        }
+        if (mode === "replace"){
+          const keep = new Set(d[k].map(x => x.id));
+          for (const old of S[k].slice()) if (!keep.has(old.id)) await withRetry(() => db.collection(coll).doc(old.id).delete());
+        }
+      }
+      S.config = mode === "replace" ? d.config : mergeConfig(S.config, d.config);
+      await saveConfig();
+    } else {
+      for (const [k] of COLLS){
+        if (mode === "replace") S[k] = d[k];
+        else { const have = new Set(S[k].map(x => x.id)); S[k] = S[k].concat(d[k].filter(x => !have.has(x.id))); }
+      }
+      S.config = mode === "replace" ? d.config : mergeConfig(S.config, d.config);
+      await saveLocal();
+    }
+    BK.busy = false; BK.file = null;
+    const when = d.exportedAt ? ` (sao lưu ngày ${dmy(new Date(d.exportedAt))})` : "";
+    bkMsg(`Đã khôi phục${when}: ${d.txs.length} giao dịch, ${d.savs.length} sổ tiết kiệm, ${d.golds.length} giao dịch vàng, ${d.reals.length} nhà đất.`, true);
+  } catch(e){
+    BK.busy = false;
+    bkMsg(e && e.code === "invalid_argument" ? "Bạn chỉ có quyền xem, không khôi phục được." : e && e.message ? e.message : "Chưa khôi phục được.");
+  }
+}
+function backupCard(){
+  const last = lastBackup(), msg = BK.msg ? `<div class="${BK.msg.ok ? "okmsg" : "err"} small" style="margin-top:8px">${esc(BK.msg.text)}</div>` : "";
+  return `<div class="card">
+    <h2>Sao lưu và khôi phục</h2>
+    <div class="small muted">File sao lưu được tải về điện thoại hoặc máy tính của bạn. File nằm ngoài tài khoản Claude, nên vẫn còn nếu tài khoản gặp sự cố. File chứa toàn bộ: thu chi, sổ tiết kiệm, vàng, nhà đất và cài đặt.</div>
+    <div class="small" style="margin-top:6px">Lần sao lưu gần nhất trên máy này: <b>${last ? dmy(parse(last)) : "chưa có"}</b></div>
+    <div class="two">
+      <div class="field"><span>Mật khẩu file (nên đặt)</span><input type="password" id="bkPw" autocomplete="new-password" placeholder="Để trống nếu không cần"></div>
+      <div class="field"><span>Nhập lại</span><input type="password" id="bkPw2c" autocomplete="new-password"></div>
+    </div>
+    <div class="note">Mật khẩu file có thể khác mật khẩu mở sổ. Quên mật khẩu file thì không mở được file đó.</div>
+    <button class="btn" id="bkMake" ${BK.busy ? "disabled" : ""}>⬇️ Tải file sao lưu</button>
+    <h2 style="margin-top:18px">Khôi phục từ file</h2>
+    <div class="field"><span>Chọn file sao lưu (.json)</span><input type="file" id="bkFile" accept=".json,application/json"></div>
+    ${BK.file ? `<div class="small">Đã chọn: <b>${esc(BK.file.name)}</b></div>` : ""}
+    <div class="two">
+      <div class="field"><span>Mật khẩu file (nếu có)</span><input type="password" id="bkPwR" autocomplete="off"></div>
+      <div class="field"><span>Cách khôi phục</span><select id="bkMode"><option value="merge">Gộp: chỉ thêm phần chưa có</option><option value="replace">Thay thế toàn bộ</option></select></div>
+    </div>
+    ${msg}
+    <button class="btn" id="bkRestore" style="background:var(--surface2);color:var(--ink);border:1px solid var(--line)" ${BK.busy ? "disabled" : ""}>Khôi phục</button>
+  </div>`;
+}
+function backupReminder(){
+  const has = S.txs.length + S.savs.length + S.golds.length + S.reals.length;
+  if (!has) return "";
+  const last = lastBackup(), days = last ? diffDays(last, ymd(new Date())) : null;
+  if (days !== null && days < 30) return "";
+  return `<div class="warn row" style="margin-top:12px"><span>${last ? `Đã ${days} ngày chưa sao lưu dữ liệu.` : "Bạn chưa sao lưu dữ liệu ra file lần nào."}</span><button class="chip" data-goto="settings">Sao lưu</button></div>`;
+}
+
+async function exportCsv(all){
+  const r = curRange(), list = sortTx(all ? S.txs : inRange(r)).reverse();
+  const q = v => `"${String(v).replace(/"/g,'""')}"`;
+  const lines = [["Ngày","Loại","Hạng mục","Số tiền (đồng)","Thành viên","Ghi chú"].map(q).join(",")];
+  for (const t of list){ const d = parse(t.date); lines.push([dmy(d), t.wd ? "Rút " + TYPES[t.type].label.toLowerCase() : TYPES[t.type].label, catOf(t.type,t.cat).name, t.amount, t.member, t.note].map(q).join(",")); }
+  const data = "\ufeff" + lines.join("\r\n");
+  const filename = all ? "so-tai-chinh-toan-bo.csv" : `so-tai-chinh_${r.from}_${r.to}.csv`;
+  let dl = null;
+  try { if (window.claude && window.claude.use) dl = await window.claude.use("downloads"); } catch(e){}
+  if (dl){ try { await dl.save({filename, data}); } catch(e){ toast("Chưa tải được file"); } return; }
+  try { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([data], {type:"text/csv"})); a.download = filename; a.click(); }
+  catch(e){ toast("Thiết bị không hỗ trợ tải file"); }
+}
+
+/* ---------- Events ---------- */
+$("#modeSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.mode = b.dataset.m; if (S.mode !== "custom") S.anchor = new Date(); render(); });
+$("#prev").addEventListener("click", () => { S.anchor = shiftAnchor(S.mode, S.anchor, -1); render(); });
+$("#next").addEventListener("click", () => { S.anchor = shiftAnchor(S.mode, S.anchor, 1); render(); });
+$("#cFrom").value = S.cFrom; $("#cTo").value = S.cTo;
+$("#cFrom").addEventListener("change", e => { if (isYmd(e.target.value)){ S.cFrom = e.target.value; render(); } });
+$("#cTo").addEventListener("change", e => { if (isYmd(e.target.value)){ S.cTo = e.target.value; render(); } });
+document.querySelector("nav").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.view = b.dataset.v; window.scrollTo(0,0); render(); });
+$("#fab").addEventListener("click", () => S.view === "savings" ? (S.assetTab === "gold" ? openGold(null) : S.assetTab === "real" ? openReal(null) : openSav(null)) : openSheet(null));
+$("#scrim").addEventListener("click", closeSheet);
+$("#closeSheet").addEventListener("click", closeSheet);
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+$("#fType").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; F.type = b.dataset.t; F.cat = ""; drawCats(); });
+$("#fCats").addEventListener("click", e => { const b = e.target.closest(".cat"); if (!b) return; F.cat = b.dataset.c; drawCats(); });
+$("#fDir").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; F.wd = b.dataset.d === "out"; drawCats(); });
+$("#toGold").addEventListener("click", () => { const side = F.wd ? "sell" : "buy"; closeSheet(); S.view = "savings"; S.assetTab = "gold"; window.scrollTo(0,0); render(); openGold(null, side); });
+$("#fAmount").addEventListener("input", fmtAmountInput);
+document.querySelector(".quick").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  let v = parseAmount($("#fAmount").value) || 0; if (Number.isNaN(v)) v = 0;
+  const q = b.dataset.q;
+  if (q === "000") v = v * 1000; else if (q === "clr") v = 0; else v += {k50:50000,k100:100000,k500:500000}[q];
+  $("#fAmount").value = v && v <= Number.MAX_SAFE_INTEGER ? NF.format(v) : "";
+});
+$("#fSave").addEventListener("click", submit);
+$("#fDel").addEventListener("click", async () => {
+  const b = $("#fDel");
+  if (!b.dataset.armed){ b.dataset.armed = "1"; b.textContent = "Bấm lần nữa để xóa hẳn"; return; }
+  try { await removeTx(F.editing.id); closeSheet(); toast("Đã xóa giao dịch"); }
+  catch(e){ $("#fErr").textContent = "Chưa xóa được. Thử lại sau."; }
+});
+
+document.querySelector("main").addEventListener("click", e => {
+  const tx = e.target.closest(".tx:not(.goldrow)"); if (tx){ const t = S.txs.find(x => x.id === tx.dataset.id); if (t) openSheet(t); return; }
+  const svc = e.target.closest(".savc:not(.recard)"); if (svc){ const sv = S.savs.find(x => x.id === svc.dataset.sid); if (sv) openSavDetail(sv); return; }
+  if (e.target.closest("[data-sav-new]")){ openSav(null); return; }
+  const at = e.target.closest("[data-at]"); if (at){ S.assetTab = at.dataset.at; render(); return; }
+  const gn = e.target.closest("[data-gold-new]"); if (gn){ openGold(null, gn.dataset.goldNew); return; }
+  if (e.target.closest("[data-gold-price]")){ openGoldPrice(); return; }
+  if (e.target.closest("[data-re-new]")){ openReal(null); return; }
+  const rc = e.target.closest(".recard"); if (rc){ const r = S.reals.find(x => x.id === rc.dataset.rid); if (r) openRealDetail(r); return; }
+  const gf = e.target.closest("[data-gf]"); if (gf){ S.goldFilter = gf.dataset.gf; render(); return; }
+  const gr = e.target.closest(".goldrow"); if (gr){ const g = S.golds.find(x => x.id === gr.dataset.gid); if (g) openGold(g); return; }
+  const go = e.target.closest("[data-goto]"); if (go){ S.view = go.dataset.goto; window.scrollTo(0,0); render(); return; }
+  const lt = e.target.closest("[data-lt]"); if (lt){ S.ledgerType = lt.dataset.lt; S.ledgerCat = ""; render(); return; }
+  const rt = e.target.closest("[data-rt]"); if (rt){ S.reportType = rt.dataset.rt; render(); return; }
+  const st = e.target.closest("[data-st]"); if (st){ S.settingsType = st.dataset.st; render(); return; }
+  if (e.target.id === "memAdd"){
+    const n = $("#memNew").value.trim(); if (!n) return;
+    if (S.config.members.includes(n)) return toast("Đã có thành viên này");
+    S.config.members.push(n); saveConfig(); return;
+  }
+  const md = e.target.closest("[data-mdel]"); if (md){ S.config.members.splice(Number(md.dataset.mdel), 1); saveConfig(); return; }
+  if (e.target.id === "catAdd"){
+    const n = $("#catNew").value.trim(); if (!n) return;
+    S.config.categories[S.settingsType].push({id:"c"+newId(), icon:$("#catIcon").value.trim() || "•", name:n});
+    saveConfig(); toast("Đã thêm hạng mục"); return;
+  }
+  const cd = e.target.closest("[data-cdel]"); if (cd){
+    const u = Number(cd.dataset.used);
+    if (u) return toast(`Đang dùng ở ${u} giao dịch, chưa thể xóa`);
+    S.config.categories[S.settingsType] = S.config.categories[S.settingsType].filter(c => c.id !== cd.dataset.cdel);
+    saveConfig(); return;
+  }
+  if (e.target.id === "pwLockNow"){ lockNow(); return; }
+  if (e.target.id === "bkMake"){ doBackup(); return; }
+  if (e.target.id === "bkRestore"){ doRestore(); return; }
+  if (["pwSet","pwChange","pwRemove","rcGen","rcSave","rcClear"].includes(e.target.id)){ pwAction(e.target.id); return; }
+  if (e.target.id === "exportCsv") exportCsv(false);
+  if (e.target.id === "exportAll") exportCsv(true);
+});
+document.querySelector("main").addEventListener("change", e => {
+  if (e.target.id === "bkFile"){ BK.file = e.target.files && e.target.files[0] || null; BK.msg = null; render(); return; }
+  if (e.target.id === "autoLock"){ try { localStorage.setItem(AL_KEY, e.target.value); } catch(_){} toast("Đã lưu"); return; }
+  if (e.target.id === "lCat"){ S.ledgerCat = e.target.value; render(); return; }
+  if (e.target.dataset.mi !== undefined){
+    const v = e.target.value.trim(); if (!v) return render();
+    S.config.members[Number(e.target.dataset.mi)] = v; saveConfig(); return;
+  }
+  if (e.target.dataset.ci){
+    const c = S.config.categories[S.settingsType].find(c => c.id === e.target.dataset.ci); if (!c) return;
+    const v = e.target.value.trim(); if (!v && e.target.dataset.f === "name") return render();
+    c[e.target.dataset.f] = v || "•"; saveConfig();
+  }
+});
+document.querySelector("main").addEventListener("input", e => {
+  if (e.target.id === "lQ"){ S.ledgerQ = e.target.value; renderLedger._focus = true; clearTimeout(renderLedger._t); renderLedger._t = setTimeout(render, 200); }
+});
+
+/* ---------- Password UI ---------- */
+const AL_KEY = "so-tai-chinh-autolock";
+function getAutoLock(){ try { const v = Number(localStorage.getItem(AL_KEY)); return Number.isFinite(v) && localStorage.getItem(AL_KEY) !== null ? v : 5; } catch(e){ return 5; } }
+async function pwAction(id){
+  if (S.pwBusy) return;
+  const val = x => { const el = document.getElementById(x); return el ? el.value : ""; };
+  const cur = val("pwCur"), p1 = val("pwNew"), p2 = val("pwNew2"), rc = normCode(val("rcNew"));
+  if (id === "rcGen"){ const el = document.getElementById("rcNew"); if (el) el.value = genCode(); return; }
+  if (id === "rcSave" || id === "rcClear"){
+    if (id === "rcSave" && rc.length < 6) return pwMsg("Mã khôi phục cần ít nhất 6 ký tự.");
+    S.pwBusy = true; pwMsg("Đang xử lý…", true);
+    try {
+      if (id === "rcSave") await setRecovery(rc); else await clearRecovery();
+      S.pwBusy = false; const el = document.getElementById("rcNew"); if (el) el.value = "";
+      pwMsg(id === "rcSave" ? "Đã lưu mã khôi phục. Hãy cất mã ở nơi an toàn." : "Đã xóa mã khôi phục.", true);
+    } catch(e){ S.pwBusy = false; pwMsg(e && e.message ? e.message : "Có lỗi, thử lại."); }
+    return;
+  }
+  if (id === "pwSet" && rc && rc.length < 6) return pwMsg("Mã khôi phục cần ít nhất 6 ký tự.");
+  if (id !== "pwRemove"){
+    if (p1.length < 6) return pwMsg("Mật khẩu cần ít nhất 6 ký tự.");
+    if (p1 !== p2) return pwMsg("Hai lần nhập mật khẩu không khớp.");
+  }
+  if (id !== "pwSet" && !cur) return pwMsg("Nhập mật khẩu hiện tại.");
+  if (id === "pwRemove"){
+    const b = document.getElementById("pwRemove");
+    if (!b.dataset.armed){ b.dataset.armed = "1"; b.textContent = "Bấm lần nữa để gỡ mật khẩu"; return; }
+  }
+  S.pwBusy = true; pwMsg("Đang xử lý…", true);
+  try {
+    if (id === "pwSet") await setPassword(p1, rc);
+    if (id === "pwChange") await changePassword(cur, p1);
+    if (id === "pwRemove") await removePassword(cur);
+    S.pwBusy = false;
+    document.querySelectorAll("#v-settings input[type=password], #rcNew").forEach(i => i.value = "");
+    pwMsg(id === "pwSet" ? "Đã đặt mật khẩu và mã hóa dữ liệu." : id === "pwChange" ? "Đã đổi mật khẩu." : "Đã gỡ mật khẩu.", true);
+  } catch(e){ S.pwBusy = false; pwMsg(e && e.message ? e.message : "Có lỗi, thử lại."); }
+}
+async function tryUnlock(){
+  const err = $("#lockErr"), btn = $("#lockGo"), pw = $("#lockPw").value;
+  const wait = Math.ceil((S.blockUntil - Date.now()) / 1000);
+  if (wait > 0){ err.textContent = `Nhập sai nhiều lần. Thử lại sau ${wait} giây.`; return; }
+  if (!pw){ err.textContent = "Nhập mật khẩu."; return; }
+  btn.disabled = true; err.textContent = ""; btn.textContent = "Đang kiểm tra…";
+  let ok = false;
+  try { ok = await unlock(pw); } catch(e){ ok = false; }
+  btn.disabled = false; btn.textContent = "Mở khóa";
+  if (ok){ S.fails = 0; $("#lockPw").value = ""; return; }
+  S.fails++;
+  if (S.fails >= 5){ S.blockUntil = Date.now() + 30000 * (S.fails - 4); err.textContent = "Sai mật khẩu. Tạm khóa 30 giây."; }
+  else err.textContent = `Sai mật khẩu (${S.fails}/5).`;
+  $("#lockPw").select();
+}
+$("#lockGo").addEventListener("click", tryUnlock);
+$("#lockPw").addEventListener("keydown", e => { if (e.key === "Enter") tryUnlock(); });
+$("#lockBtn").addEventListener("click", lockNow);
+$("#toRecover").addEventListener("click", () => { S.recMode = true; $("#recErr").textContent = ""; renderLock(); setTimeout(() => $("#recCode").focus(), 50); });
+$("#backToPw").addEventListener("click", () => { S.recMode = false; renderLock(); setTimeout(() => $("#lockPw").focus(), 50); });
+async function tryRecover(){
+  const err = $("#recErr"), btn = $("#recGo");
+  const code = normCode($("#recCode").value), p1 = $("#recPw").value, p2 = $("#recPw2").value;
+  const wait = Math.ceil((S.blockUntil - Date.now()) / 1000);
+  if (wait > 0){ err.textContent = `Nhập sai nhiều lần. Thử lại sau ${wait} giây.`; return; }
+  if (code.length < 6){ err.textContent = "Nhập mã khôi phục."; return; }
+  if (p1.length < 6){ err.textContent = "Mật khẩu mới cần ít nhất 6 ký tự."; return; }
+  if (p1 !== p2){ err.textContent = "Hai lần nhập mật khẩu không khớp."; return; }
+  btn.disabled = true; err.textContent = ""; btn.textContent = "Đang kiểm tra…";
+  let res = false;
+  try { res = await recoverWithCode(code, p1); } catch(e){ res = false; }
+  btn.disabled = false; btn.textContent = "Khôi phục và mở sổ";
+  if (res){
+    S.fails = 0; ["#recCode","#recPw","#recPw2"].forEach(s => $(s).value = "");
+    toast(res === "saved" ? "Đã đặt mật khẩu mới" : "Đã mở sổ, nhưng chỉ chủ sở hữu mới lưu được mật khẩu mới");
+    return;
+  }
+  S.fails++;
+  if (S.fails >= 5){ S.blockUntil = Date.now() + 30000 * (S.fails - 4); err.textContent = "Sai mã khôi phục. Tạm khóa 30 giây."; }
+  else err.textContent = `Sai mã khôi phục (${S.fails}/5).`;
+}
+$("#recGo").addEventListener("click", tryRecover);
+$("#recPw2").addEventListener("keydown", e => { if (e.key === "Enter") tryRecover(); });
+let hiddenAt = 0;
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden){ hiddenAt = Date.now(); return; }
+  const m = getAutoLock();
+  if (S.lock && S.key && m > 0 && hiddenAt && Date.now() - hiddenAt >= m * 60000) lockNow();
+});
+
+render();
+initStore();
+})();
+</script>
+</body>
+</html>
